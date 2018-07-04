@@ -19,24 +19,28 @@ $GLOBALS['query']['banner'] = "SELECT l_key,value FROM website WHERE l_key = 'ba
 //获取基本信息
 $GLOBALS['base_info'] = common_query($GLOBALS['query']['base'],'无记录');
 
+//需要返回的数据
+$obj = new StdClass();
+$obj -> base_info = $GLOBALS['base_info'];
 
 //首页
 if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
-  $obj = new StdClass();
-  $obj -> base_info = $GLOBALS['base_info'];
   $obj -> banner = banner();
   $obj -> designer = home_designer();
   $obj -> cases = home_case();
 
-  $str = file_get_contents('./home.html');
-  $str = str_replace('</vuebody>',json_encode($obj).'</vuebody>',$str);
-  print_r($str);
+  replace_template('./home.html','爱家',json_encode($obj));
   // $query = 'SELECT * FROM website';
   // $result_array = common_query($query,'无记录');
   // $result_obj = array2object($result_array);
   // $result_obj_str = json_encode($result_obj);
   // print_r($result_obj_str);
+}else if(isset($_GET['about'])){
+  //关于爱家页面
+  replace_template('./about.html','关于爱家',json_encode($obj));
 }
+
+//
 
 //查询 banner
 function banner(){
@@ -122,6 +126,14 @@ function deal_error($error_msg){
   $obj -> errorMsg = $error_msg;
   print_r(json_encode($obj));
   die();
+}
+
+//替换模板
+function replace_template($path,$title,$content){
+  $html_str = file_get_contents($path);
+  $html_str = str_replace("<title>Page Title</title>","<title>".$title."</title>",$html_str);
+  $html_str = str_replace("</vuebody>",$content.'</vuebody>',$html_str);
+  print_r($html_str);
 }
 
 //数组和对象的转换

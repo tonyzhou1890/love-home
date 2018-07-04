@@ -3,7 +3,7 @@
     <div class="footer-area">
       <div class="web-info">
         <p>爱家</p>
-        <p>不一样的装修体验——<a>了解更多</a></p>
+        <p>不一样的装修体验——<a href="./?about" target="_blank">了解更多</a></p>
       </div>
       <div class="friend">
         <p>友情链接</p>

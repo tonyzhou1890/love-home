@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "b_home": "webpack --config webpack.config.home.js && cp ./src/index.php ./dist/"
+    "b_home": "webpack --config webpack.config.home.js && cp ./src/index.php ./dist/",
+    "b_about": "webpack --config webpack.config.about.js && cp ./src/index.php ./dist/"
   },
   "author": "tony",
   "license": "ISC",
