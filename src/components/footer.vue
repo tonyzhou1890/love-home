@@ -40,6 +40,7 @@ footer {
     margin: auto;
     color: @darkGray;
     position: relative;
+    padding-top: 1px;
     .web-info {
       float: left;
       margin: 20px 0 0 20px;
