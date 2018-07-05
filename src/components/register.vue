@@ -107,11 +107,11 @@ export default {
           this.register_nickname_err = true;
           this.register_pwd_err = true;
           this.register_nickname_unique = false;
-        }else if(response.data.errorMsg){
-          alert('抱歉，网站发送错误！');
-          return;
-        }else {
+        }else if(response.data.response === 'success'){
           this.register_success = true;
+        }else{
+          alert('抱歉，网站发生错误！');
+          return;
         }
         this.all_enable();
       })

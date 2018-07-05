@@ -115,11 +115,17 @@ export default {
         
         if(response.data.response === 'error'){
           this.login_pwd_err = true;
-        }else if(response.data.errorMsg){
-          alert('抱歉，网站发送错误！');
-          return;
-        }else{
+        }else if(response.data.response === 'success'){
+          if(window.localStorage){
+            window.localStorage.setItem('lh_token',response.data.token);
+          }else{
+            alert('抱歉，您的浏览器无法存储登录信息，请更换浏览器。谢谢！');
+          }
           this.login_success = true;
+
+        }else{
+          alert('抱歉，网站发生错误！');
+          return;
         }
         this.all_enable();
       })

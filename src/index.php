@@ -76,6 +76,16 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
     $query = $GLOBALS['query']['password'].'"'.$login_nickname.'"';
     $result = common_query($query,'err');
     if($login_pwd === $result[0]['password']){
+
+      $token = $res -> token = $login_nickname.'_'.time().'_'.rand(10000,99999);
+      $query = "UPDATE user SET token = '$token' WHERE nickname = '$login_nickname'";
+
+      $result = common_insert($query);
+      if(isset($result -> errorMsg)){
+        print_r(json_encode($result));
+        die();
+      }
+
       $res -> response = 'success';
     }else{
       $res -> response = 'error';
@@ -172,7 +182,7 @@ function common_query($query,$error_msg){
   return $result_array;
 }
 
-//插入数据
+//插入/更新数据
 function common_insert($query){
   global $db;
   $result = mysqli_query($db,$query);
@@ -180,7 +190,7 @@ function common_insert($query){
   if($result){
     $res -> response = 'success';
   }else{
-    $res -> response = 'error';
+    $res -> errorMsg = 'error';
   }
   return $res;
 }
