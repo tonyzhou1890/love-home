@@ -127,7 +127,7 @@ function verify_token($token){
     // print_r($result);
     
     $res -> nickname = $result[0]['nickname'];
-    $res -> profile = $result[1]['profile'];
+    $res -> profile = $result[0]['profile'];
     if(!$res -> profile){
       $res -> profile = $GLOBALS['base_info'][2]['value'];
     }
