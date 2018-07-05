@@ -8,7 +8,9 @@
         <p class="fl">注册</p>
       </router-link>
     </div>
-    <router-view></router-view>
+    <keep-alive>
+      <router-view></router-view>
+    </keep-alive>
   </div>
 </template>
 

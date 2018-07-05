@@ -15,11 +15,13 @@ mysqli_select_db($db,"love_home");
 //查询语句
 $GLOBALS['query']['base'] = "SELECT l_key,value FROM website WHERE l_key = 'logo' OR l_key = 'nopic' OR l_key = 'default_profile'";
 $GLOBALS['query']['banner'] = "SELECT l_key,value FROM website WHERE l_key = 'banner'";
+$GLOBALS['query']['nickname'] = "SELECT nickname FROM user WHERE nickname = ";
+$GLOBALS['query']['password'] = "SELECT password FROM user WHERE nickname = ";
 
 //获取基本信息
 $GLOBALS['base_info'] = common_query($GLOBALS['query']['base'],'无记录');
 
-//需要返回的数据
+//需要返回的网站基本数据
 $obj = new StdClass();
 $obj -> base_info = $GLOBALS['base_info'];
 
@@ -38,6 +40,48 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
 }else if(isset($_GET['about'])){
   //关于爱家页面
   replace_template('./about.html','关于爱家',json_encode($obj));
+}else if(isset($_POST['login'])){
+  //登录/注册页面
+  $res = new StdClass();
+  //查询用户是否存在
+  if($_POST['login'] === 'query_user'){
+
+    $res = user_exist($GLOBALS['query']['nickname'].'"'.urldecode($_POST['nickname']).'"');
+    print_r(json_encode($res));
+  }else if($_POST['login'] === 'register'){
+    //注册
+    $result = new StdClass();
+    $res = user_exist($GLOBALS['query']['nickname'].'"'.urldecode($_POST['nickname']).'"');
+    if('y' === $res -> exist){
+      print_r(json_encode($res));
+      die();
+    }
+    if(isset($_POST['nickname']) && isset($_POST['pwd'])){
+      $register_nickname = urldecode($_POST['nickname']);
+      $register_pwd = urldecode($_POST['pwd']);
+      $query = "INSERT INTO user (nickname, password)
+      VALUES
+      ('$register_nickname', '$register_pwd')";
+      // print_r($query);
+      $result = common_insert($query);
+      print_r(json_encode($result));
+    }else{
+      $res -> response = 'error';
+      print_r(json_encode($res));
+    } 
+  }else if($_POST['login'] === 'login'){
+    //登录
+    $login_nickname = urldecode($_POST['nickname']);
+    $login_pwd = urldecode($_POST['pwd']);
+    $query = $GLOBALS['query']['password'].'"'.$login_nickname.'"';
+    $result = common_query($query,'err');
+    if($login_pwd === $result[0]['password']){
+      $res -> response = 'success';
+    }else{
+      $res -> response = 'error';
+    }
+    print_r(json_encode($res));
+  }
 }
 
 //
@@ -96,6 +140,18 @@ function patch($target,$len,$insert){
   return $target;
 }
 
+//查询用户是否存在
+function user_exist($query){
+  $result = common_query($query,'查询错误');
+  $res = new StdClass();
+  if('no_result'===$result[0]){
+    $res -> exist = 'n';
+  }else{
+    $res -> exist = 'y';
+  }
+  return $res;
+}
+
 //查询数据库
 function common_query($query,$error_msg){
   global $db;
@@ -114,6 +170,19 @@ function common_query($query,$error_msg){
   mysqli_free_result($result);
   // print_r($result_array);
   return $result_array;
+}
+
+//插入数据
+function common_insert($query){
+  global $db;
+  $result = mysqli_query($db,$query);
+  $res = new StdClass();
+  if($result){
+    $res -> response = 'success';
+  }else{
+    $res -> response = 'error';
+  }
+  return $res;
 }
 
 //查询错误处理
