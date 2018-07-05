@@ -3,6 +3,7 @@
 $host = 'localhost';
 $user = 'root';
 $password = '9306251239zxt';
+$token_expire = 25;
 
 //连接数据库
 $db = mysqli_connect($host,$user,$password);
@@ -17,6 +18,7 @@ $GLOBALS['query']['base'] = "SELECT l_key,value FROM website WHERE l_key = 'logo
 $GLOBALS['query']['banner'] = "SELECT l_key,value FROM website WHERE l_key = 'banner'";
 $GLOBALS['query']['nickname'] = "SELECT nickname FROM user WHERE nickname = ";
 $GLOBALS['query']['password'] = "SELECT password FROM user WHERE nickname = ";
+$GLOBALS['query']['token'] = "SELECT nickname,profile FROM user WHERE token = ";
 
 //获取基本信息
 $GLOBALS['base_info'] = common_query($GLOBALS['query']['base'],'无记录');
@@ -37,11 +39,9 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
   // $result_obj = array2object($result_array);
   // $result_obj_str = json_encode($result_obj);
   // print_r($result_obj_str);
-}else if(isset($_GET['about'])){
-  //关于爱家页面
+}else if(isset($_GET['about'])){  //关于爱家页面
   replace_template('./about.html','关于爱家',json_encode($obj));
-}else if(isset($_POST['login'])){
-  //登录/注册页面
+}else if(isset($_POST['login'])){ //登录/注册页面
   $res = new StdClass();
   //查询用户是否存在
   if($_POST['login'] === 'query_user'){
@@ -77,7 +77,7 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
     $result = common_query($query,'err');
     if($login_pwd === $result[0]['password']){
 
-      $token = $res -> token = $login_nickname.'_'.time().'_'.rand(10000,99999);
+      $token = $res -> token = generate_token($login_nickname);
       $query = "UPDATE user SET token = '$token' WHERE nickname = '$login_nickname'";
 
       $result = common_insert($query);
@@ -92,9 +92,53 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
     }
     print_r(json_encode($res));
   }
+}else if(isset($_GET['token'])){  //token验证
+  $token = urldecode($_GET['token']);
+  $result = verify_token($token);
+  print_r(json_encode($result));
 }
 
-//
+//token 验证
+function verify_token($token){
+  global $token_expire;
+  $result = common_query($GLOBALS['query']['token'].'"'.$token.'"','err');
+  $res = new StdClass();
+  if($result[0] === 'no_result'){
+    $res -> response = 'error';
+  }else{
+    $ex = explode('_',$token);
+    $now = time();
+    
+    // print_r($token_expire);
+    if($now - $ex[1] > $token_expire){
+      $res -> response = 'error';
+    }else if($now - $ex[1] > $token_expire/2 && $now - $ex[1] < $token_expire){
+      $new_token = generate_token($ex[0]);
+      $query = "UPDATE user SET token = '$new_token' WHERE token = '$token'";
+
+      $update = common_insert($query);
+      if(isset($update -> errorMsg)){
+        return $update;
+      }
+      $res -> token = $new_token;
+    }else{
+      $res -> response = 'success';
+    };
+    // print_r($result);
+    
+    $res -> nickname = $result[0]['nickname'];
+    $res -> profile = $result[1]['profile'];
+    if(!$res -> profile){
+      $res -> profile = $GLOBALS['base_info'][2]['value'];
+    }
+  }
+  return $res;
+}
+
+//生成token
+function generate_token($start){
+  return $start.'_'.time().'_'.rand(10000,99999);
+}
 
 //查询 banner
 function banner(){

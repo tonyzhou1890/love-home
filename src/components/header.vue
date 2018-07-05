@@ -52,14 +52,14 @@
     </div>
     <div class="user">
       <p v-show = "!login" class="no-login">
-        <span>登录</span>
+        <a href="./login.html#/login" target="_blank"><span>登录</span></a>
         <span>/</span>
-        <span>注册</span>
+        <a href="./login.html#/register" target="_blank"><span>注册</span></a>
       </p>
       <div class="has-login hidden" v-show = "login">
-        <img :src="defaultProfile" alt="头像" class="profile">
+        <img :src="profile" alt="头像" class="profile">
         <div class="info">
-          <span class="nickname">Tony</span>
+          <span class="nickname" v-html="nickname"></span>
           <hr>
           <i class="iconfont" alt = "设置">&#xe606;</i>
           <i class="iconfont" alt = "收藏">&#xe609;</i>
@@ -72,6 +72,8 @@
 
 
 <script>
+import axios from "axios";
+
 export default {
   props: {
     info: {
@@ -85,11 +87,12 @@ export default {
       hasEnter: false,
       logoPath: this.info[0].value,
       login: false,
-      defaultProfile: this.info[2].value,
+      profile: this.info[2].value,
       searchKey: null,
       searchType: 'case',
       showAllCity: false,
       areaSelected: '东北',
+      nickname:'',
       areas: [
         [
           "东北",
@@ -156,6 +159,27 @@ export default {
       this.hasEnter = false;
       this.showAllCity = false;
     }
+  },
+  created(){
+    if(!window.localStorage.lh_token){
+      return;
+    }
+    let token = encodeURIComponent(window.localStorage.lh_token);
+    axios.get('./?token='+token)
+      .then(response => {
+        if(response.data.response === 'error'){
+          localStorage.removeItem('lh_token');
+          return;
+        }else if(response.data.response === 'success'){
+          this.nickname = response.data.nickname;
+          this.profile = response.data.profile;
+          this.login = true;
+          if(response.data.token){
+            localStorage.setItem('lh_token',response.data.token);
+          }
+        }
+        
+      });
   },
   mounted(){
     document.getElementsByClassName('all-city')[0].classList.remove('hidden');
