@@ -8,6 +8,7 @@
     "b_home": "webpack --config webpack.config.home.js && cp ./src/index.php ./dist/",
     "b_about": "webpack --config webpack.config.about.js && cp ./src/index.php ./dist/",
     "b_login": "webpack --config webpack.config.login.js && cp ./src/index.php ./dist/",
+    "b_panel": "webpack --config webpack.config.panel.js && cp ./src/index.php ./dist/",
     "cp": "cp ./src/index.php ./dist/"
   },
   "author": "tony",
@@ -31,6 +32,7 @@
     "vue-loader": "^15.2.4",
     "vue-router": "^3.0.1",
     "vue-template-compiler": "^2.5.16",
+    "vuex": "^3.0.1",
     "webpack": "^4.14.0",
     "webpack-cli": "^3.0.8"
   }

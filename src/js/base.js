@@ -17,7 +17,7 @@ base.install = function(Vue,options){
           for ( let i in data){
             newData += encodeURIComponent(i) + '=' + encodeURIComponent(data[i]) + '&';
           }
-          console.log(newData);
+          // console.log(newData);
           return newData;
         }
       ]

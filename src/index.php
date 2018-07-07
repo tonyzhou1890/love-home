@@ -3,7 +3,7 @@
 $host = 'localhost';
 $user = 'root';
 $password = '9306251239zxt';
-$token_expire = 25;
+$token_expire = 250000;
 
 //连接数据库
 $db = mysqli_connect($host,$user,$password);
@@ -17,8 +17,11 @@ mysqli_select_db($db,"love_home");
 $GLOBALS['query']['base'] = "SELECT l_key,value FROM website WHERE l_key = 'logo' OR l_key = 'nopic' OR l_key = 'default_profile'";
 $GLOBALS['query']['banner'] = "SELECT l_key,value FROM website WHERE l_key = 'banner'";
 $GLOBALS['query']['nickname'] = "SELECT nickname FROM user WHERE nickname = ";
+$GLOBALS['query']['d_nickname'] = "SELECT nickname FROM designer WHERE nickname = ";
 $GLOBALS['query']['password'] = "SELECT password FROM user WHERE nickname = ";
 $GLOBALS['query']['token'] = "SELECT nickname,profile FROM user WHERE token = ";
+$GLOBALS['query']['user_info'] = "SELECT * FROM user WHERE token = ";
+$GLOBALS['query']['designer_info'] = "SELECT * FROM designer WHERE nickname = ";
 
 //获取基本信息
 $GLOBALS['base_info'] = common_query($GLOBALS['query']['base'],'无记录');
@@ -96,6 +99,159 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
   $token = urldecode($_GET['token']);
   $result = verify_token($token);
   print_r(json_encode($result));
+}else if(isset($_GET['setting'])){  //获取个人详细信息
+  $token = urldecode($_GET['setting']);
+  $result = getting_info($token);
+  print_r(json_encode($result));
+}else if(isset($_POST['setting'])){ //设置个人详细信息
+  $setting = json_decode(urldecode($_POST['data']));
+  $result = setting_info($setting);
+  print_r(json_encode($result));
+};
+
+//设置个人信息
+function setting_info($setting){
+  if($setting -> user -> profile !== $GLOBALS['base_info'][2]['value'] && substr($setting -> user -> profile,0,10) === 'data:image'){
+    $res = base64image($setting -> user -> profile,'./images/profile/',date('YmdHis').rand(100000,999999));
+    if('success' === $res -> result){
+      $setting -> user -> profile = $res -> path;
+    }else{
+      $setting -> user -> profile = $GLOBALS['base_info'][2]['value'];
+    }
+  }else{
+    $setting -> user -> profile = $GLOBALS['base_info'][2]['value'];
+  }
+  $u = $setting -> user;
+  $old_info = common_query($GLOBALS['query']['user_info'].'"'.$u -> token.'"','err');
+  // print_r("120");
+  // print_r($GLOBALS['query']);
+  $query1 = "UPDATE user SET nickname = '{$u -> nickname}', birth = '{$u -> birth}', gender = '{$u -> gender}', profile = '{$u -> profile}' WHERE token = '{$u -> token}'";
+  // print_r($GLOBALS);
+  $update = common_insert($query1);
+  $response = new StdClass();
+  if(isset($update -> errorMsg)){
+    $response -> response = 'error';
+    return $response;
+  }
+
+  //是否要成为或者已经是设计师
+  if(isset($setting -> designer)){
+    $d = $setting -> designer;
+    //将‘擅长风格’和‘联系方式’转为字符串
+    $d_style = str_replace('\\','\\\\',json_encode($d -> style));
+    $d_contact = str_replace('\\','\\\\',json_encode($d -> contact));
+    //检查图片是否赋值并且是base64
+    if($d -> photo && substr($d -> photo,0,10) === 'data:image'){
+      $res = base64image($d -> photo, './images/profile', date('YmdHis').rand(100000,999999));
+      if('success' === $res -> result){
+        $d -> photo = $res -> path;
+      }else{
+        $d -> photo = null;
+      }
+    }else{
+      $d -> photo = null;
+    }
+    //是否已经是设计师
+    // print_r($GLOBALS['query']['d_nickname'].'"'.$u -> nickname.'"');
+    $d_result = common_query($GLOBALS['query']['d_nickname'].'"'.$u -> nickname.'"','error');
+    //如果还不是，就插入信息
+    // print_r($d_result);
+    if('no_result' === $d_result[0]){
+      $q = "INSERT INTO designer 
+        (
+          nickname,
+          photo,
+          counseling,
+          design,
+          working_years,
+          name,
+          education,
+          city,
+          introduction,
+          style,
+          contact
+        ) VALUES (
+          '{$u -> nickname}',
+          '{$d -> photo}',
+          '{$d -> counseling}',
+          '{$d -> design}',
+          '{$d -> working_years}',
+          '{$d -> name}',
+          '{$d -> education}',
+          '{$d -> city}',
+          '{$d -> introduction}',
+          '{$d_style}',
+          '{$d_contact}'
+        );";
+    }else{
+      $q = "UPDATE designer SET 
+        photo = '{$d -> photo}',
+        counseling = '{$d -> counseling}',
+        design = '{$d -> design}',
+        working_years = '{$d -> working_years}',
+        name = '{$d -> name}',
+        education = '{$d -> education}',
+        city = '{$d -> city}',
+        introduction = '{$d -> introduction}',
+        style = '{$d_style}',
+        contact = '{$d_contact}'
+        WHERE nickname = '{$u -> nickname}';
+      ";
+    }
+    // print_r($q);
+    $update = common_insert($q);
+    // print_r($update);
+    if(isset($update -> errorMsg)){
+      $response -> response = 'error';
+      return $response;
+    }
+    
+  }
+  $response -> response = 'success';
+  return $response;
+  // print_r(json_encode($setting));
+}
+
+//将base64转换为图片
+function base64image($str,$path,$filename){
+  $res = new StdClass();
+  if(preg_match('/^(data:image\/(\w+);base64,)/', $str, $matches)){
+    $type = $matches[2];
+    $path= $path.$filename.'.'.$type;
+    $str = str_replace(array($matches[0],' '),array('','+'),$str);
+
+    // print_r($str);
+    // die();
+    file_put_contents($path,base64_decode($str));
+    $res -> path = $path;
+    $res -> result = 'success';
+  }else{
+    $res -> result = 'error';
+  };
+  return $res;
+}
+
+//获取个人详细信息
+function getting_info($token){
+  $result = common_query($GLOBALS['query']['user_info'].'"'.$token.'"','err');
+  $res = new StdClass();
+  $res -> user = array2object($result[0]);
+  // print_r(json_encode(array2object($result[0])));
+  $nickname = $res -> user -> nickname;
+  $result = common_query($GLOBALS['query']['designer_info'].'"'.$nickname.'"','err');
+  
+  $res -> designer = array2object($result[0]);
+  if($res -> designer){
+    $res -> designer -> style = json_decode($res -> designer -> style);
+    $res -> designer -> contact = json_decode($res -> designer -> contact);
+  }
+  if(!$res -> user -> profile){
+    $res -> user -> profile = $GLOBALS['base_info'][2]['value'];
+  }
+  if(!$res -> user -> gender){
+    $res -> user -> gender = '男';
+  }
+  return $res;
 }
 
 //token 验证
