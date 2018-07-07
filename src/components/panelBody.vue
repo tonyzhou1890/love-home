@@ -49,7 +49,7 @@ const routes = [
     // }
   },
   {
-    path: './upload',
+    path: '/upload',
     component: upload
   }
 ];

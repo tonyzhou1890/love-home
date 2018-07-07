@@ -456,7 +456,25 @@ export default {
         
       //   resolve(this.judge_pic(pic,which));
       // });
-      this.check_pic(pic,which)
+      let rule = {};
+      if('profile' === which){
+        rule = {
+          size: 20* 1024,
+          min_width: 50,
+          max_width: 100,
+          min_height: 50,
+          max_height: 100
+        };
+      }else{
+        rule = {
+          size: 200* 1024,
+          min_width: 560,
+          max_width: 560 * 1.5,
+          min_height: 760,
+          max_height: 760 * 1.5
+        };
+      }
+      this._CHECK_PIC(rule,pic)
         .then(result => {
           console.log(result);
           if(result.right){
@@ -515,19 +533,33 @@ export default {
       let variable = {};
       if('profile' === which){
         variable = {
+          type: [
+            'jpeg',
+            'gif',
+            'png'
+          ],
           size: 20* 1024,
           min_width: 50,
           max_width: 100,
           min_height: 50,
-          max_height: 100
+          max_height: 100,
+          min_ratio: 1,
+          max_ratio: 1
         };
       }else {
         variable = {
+          type: [
+            'jpeg',
+            'gif',
+            'png'
+          ],
           size: 200* 1024,
           min_width: 560,
           max_width: 560 * 1.5,
           min_height: 760,
-          max_height: 760 * 1.5
+          max_height: 760 * 1.5,
+          min_ratio: 0.73,
+          max_ratio: 0.73
         }
       }
       let result = {
@@ -568,9 +600,6 @@ export default {
           }
         }
       })
-      
-      
-      
     },
     check_nickname(){
       if(this.info.nickname === this.origin_info.user.nickname){
