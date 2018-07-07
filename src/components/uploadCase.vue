@@ -9,15 +9,15 @@
       </li>
       <li>
         <span>户型：</span>
-        <input type="text">
-        <span class="error">!</span>
-        <span class="explain">必填</span>
+        <select name="house" id="house">
+          <option value="四室两厅">四室两厅</option>
+        </select>
       </li>
       <li>
         <span>风格：</span>
-        <input type="text">
-        <span class="error">!</span>
-        <span class="explain">必填</span>
+        <select name="style" id="style">
+          <option value="现代简约">现代简约</option>
+        </select>
       </li>
       <li class="cover-li">
         <span>封面：</span>
