@@ -70,16 +70,16 @@ export default {
   store,
   methods: {
     clear(){
-      console.log(this.$router);
+      // console.log(this.$router);
       document.body.innerHTML = `
-      <p>请<a href="./login.html#/login">登录</a>或<a href="./login.html#/register">注册</a></p>
+      <p style="font-size: 20px;text-align:center;padding-top:100px;">请<a href="./login.html#/login" target="_blank">登录</a>或<a href="./login.html#/register" target="_blank">注册</a></p>
       `;
       // this.$destroy();
     }
   },
   created(){
     if(!window.localStorage.lh_token){
-      console.log(this.$router);
+      // console.log(this.$router);
       this.clear();
       return;
     }

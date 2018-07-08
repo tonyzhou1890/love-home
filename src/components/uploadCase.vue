@@ -3,65 +3,380 @@
     <ul>
       <li>
         <span>标题：</span>
-        <input type="text">
-        <span class="error">!</span>
+        <input type="text"
+          v-model="info.title"
+          @blur="check_title"
+        >
+        <span class="error"
+          v-show="info.title_error"
+        >!</span>
         <span class="explain">必填</span>
       </li>
       <li>
         <span>户型：</span>
-        <select name="house" id="house">
-          <option value="四室两厅">四室两厅</option>
+        <select name="house" id="house" v-model="info.house">
+          <option value="四室两厅"
+            v-for="item in house"
+            :key="item"
+            v-html="item"
+          >四室两厅</option>
         </select>
       </li>
       <li>
         <span>风格：</span>
-        <select name="style" id="style">
-          <option value="现代简约">现代简约</option>
+        <select name="style" id="style" v-model="info.style">
+          <option value="现代简约"
+            v-for="item in style"
+            :key="item"
+            v-html="item"
+          >现代简约</option>
         </select>
       </li>
       <li class="cover-li">
         <span>封面：</span>
         <div class="cover ilb por">
-          <img src="" alt="">
-          <input type="file" class="poa cp" />
+          <img :src="info.cover" alt="">
+          <input type="file" class="poa cp" 
+            @change="check_cover"
+          />
           <!-- <div class="delete poa cp"></div> -->
         </div>
-        <span class="error">!</span>
-        <span class="explain">必填</span>
+        <span class="error"
+          v-show="info.cover_error"
+        >!</span>
+        <span class="explain">必填(最大100k。建议宽高比10：6。)</span>
       </li>
       <li class="pic-upload-li">
         <span>图片：</span>
         <div class="pic-upload-div ilb">
-          <p class="area-text">
-            <span>户型图</span>
-            <span class="error">!</span>
-            <span class="explain">必填</span>
-          </p>
-          <div class="area-stage">
-            <div class="pic-and-explain fl">
-              <div class="pic-stage por">
-                <img src="" alt="">
-                <div class="pic-cover poa">
-                  <div class="delete cp poa tac">X</div>
+          <div class="areas"
+            v-for="(item,index) in info.content"
+            :key="index"
+          >
+            <p class="area-text">
+              <span
+                v-html="item.name"
+              >户型图</span>
+              <span class="error"
+                v-show="item.error"
+              >!</span>
+              <span class="explain"
+                v-html="item.err_info"
+              >必填</span>
+            </p>
+            <div class="area-stage">
+              <div class="pic-and-description ilb"
+                v-for="(item_sub_1,index_sub_1) in item.detail"
+                :key="index_sub_1"
+                v-show="index_sub_1"
+              >
+                <div class="pic-stage por tac">
+                  <img :src="item_sub_1.path" alt="">
+                  <div class="pic-cover poa">
+                    <div class="delete cp poa tac"
+                      @click="delete_pic(item.detail,index_sub_1,index)"
+                    >X</div>
+                  </div>
                 </div>
+                <textarea class="pic-description"
+                  v-model="item_sub_1.description"
+                ></textarea>
               </div>
-              <textarea class="pic-explain"></textarea>
-            </div>
-            <div class="add cp tac ilb por">
-              +
-              <input type="file" class="poa cp">
+              <div class="add cp tac ilb por">
+                +
+                <input type="file" class="poa cp" multiple="multiple"
+                  @change="add($event,item,index)"
+                >
+              </div>
             </div>
           </div>
         </div>
       </li>
       <li class="button-li tac">
-        <button class="cp">上传</button>
+        <button class="cp"
+          @click="upload()"
+          v-html="button_text"
+        >上传</button>
       </li>
     </ul>
   </div>
 </template>
 
+<script>
+import axios from "axios";
 
+export default {
+  data(){
+    return {
+      info: {
+        title: '',
+        title_error: false,
+        house: '四室两厅',
+        style: '现代简约',
+        cover: '',
+        cover_error: false,
+        content: [
+          {
+            name: '户型图',
+            err_info: '必填(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '玄关',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '客厅',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '餐厅',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '厨房',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '卫生间',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '书房',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '卧室',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          },
+          {
+            name: '其他',
+            err_info: '至少有一个区域的图片(图片最大300k)',
+            error: false,
+            detail: [
+              {
+                path: '',
+                description: ''
+              }
+            ]
+          }
+        ]
+      },
+      house: [
+        '四室两厅',
+        '三室两厅',
+        '三室一厅',
+        '两室两厅',
+        '一室一厅',
+        '复式',
+        '别墅',
+        '其他'
+      ],
+      style: [
+        '现代简约',
+        '美式',
+        '欧式',
+        '北欧',
+        '地中海',
+        '中式',
+        '新中式',
+        '和式',
+        '混搭'
+      ],
+      button_text: '上传'
+    }
+  },
+  methods: {
+    check_title(){
+      console.log('check title');
+      if(!this.info.title){
+        this.info.title_error = true;
+        return;
+      }
+      this.info.title_error = false;
+    },
+    check_cover(e){
+      e = e || event;
+      console.log(e.target.files);
+      let pic = e.target.files[0];
+      let rule = {
+        size: 100 * 1024,
+        type: [
+          'jpeg',
+          'png',
+          'gif'
+        ]
+      };
+      this._CHECK_PIC(rule,pic)
+        .then(result => {
+          if(result.right){
+            this.info.cover = result.data;
+            this.info.cover_error = false;
+          }else{
+            this.info.cover_error = true;
+          }
+          e.target.value = '';
+        });
+    },
+    check_content(index){
+      console.log(index);
+      //检查户型图
+      if(0 == index || -1 == index){
+        console.log('plan:'+this.info.content[0].detail.length);
+        if(this.info.content[0].detail.length === 1){
+          this.info.content[0].error = true;
+        }else{
+          this.info.content[0].error = false;
+        }
+      }
+      
+      //检查所有空间
+      if(0 != index){
+        let all_room = this.info.content.slice(1);
+        if(all_room.every( val => val.detail.length === 1)){
+          all_room.forEach( val => val.error = true);
+        }else{
+          all_room.forEach(val => val.error = false);
+        }
+      }
+    },
+    add(e,item,index){
+      e = e || event;
+
+      let pics = e.target.files;
+      let len = pics.length;
+      //这里的mark 为什么设置为 -2，而不是0.原因未知，总之下面的 mark++ 执行次数会比循环次数多 2。所以设置为 -2 .
+      let mark = -2;
+      // console.log(e.target);
+      // console.log(pics);
+      let rule = {
+        size: 300 * 1024,
+        type: [
+          'jpeg',
+          'png',
+          'gif'
+        ]
+      };
+      for(let key in pics){
+        this._CHECK_PIC(rule,pics[key])
+          .then( result => {
+            if(result.right){
+              item.detail.push({
+                path: result.data,
+                description: ''
+              });
+            }
+            mark++;
+            // console.log('len:'+len+' mark:'+mark);
+            if(len === mark){
+              e.target.value = '';
+              this.check_content(index);
+            }
+          });
+      }
+      
+      // item.detail.push({
+      //   path: '',
+      //   description: ''
+      // })
+    },
+    delete_pic(item,index_sub,index){
+      item.splice(index_sub,1);
+      this.check_content(index);
+    },
+    upload(){
+      if('上传中' === this.button_text || '已完成' === this.button_text || '后台错误' === this.button_text || '后台错误' === this.button_text){
+        return;
+      }
+      this.check_title();
+      if(!this.info.cover){
+        this.info.cover_error = true;
+      }
+      this.check_content(-1);
+      if(this.info.title_error || this.info.cover_error || this.info.content.some(val => val.error)){
+        this.button_text = '信息不全';
+        return;
+      }else{
+        this.button_text = '上传中';
+      }
+      //上传案例
+      if(!localStorage.lh_token){
+        this.button_text = '无法上传';
+        return;
+      }
+      let post_data = {
+        upload: 'case',
+        data: JSON.stringify(this.info),
+        token: localStorage.lh_token
+      };
+      this._POST(post_data,response => {
+        console.log(response.data);
+        if('success' === response.data.response){
+          this.button_text = '已完成';
+        }else{
+          this.button_text = '后台错误';
+        }
+      });
+      console.log(post_data);
+    }
+  }
+}
+</script>
 
 <style lang="less" scoped>
 @white: white;
@@ -137,15 +452,17 @@
           padding: 10px;
           margin: 10px 0 20px 0;
           background: @white;
-          overflow-x: scroll;
+          overflow-x: auto;
           overflow-y: hidden;
-          .pic-and-explain {
+          white-space: nowrap;
+          .pic-and-description {
             margin-right: 20px;
             .pic-stage {
               width: 140px;
               height: 140px;
               background: @darkGray;
               display: table-cell;
+              vertical-align: middle;
               img {
                 max-width: 100%;
                 max-height: 100%;
@@ -154,6 +471,8 @@
               .pic-cover {
                 width: 100%;
                 height: 100%;
+                top: 0;
+                left: 0;
                 .delete {
                   width: 16px;
                   height: 16px;
@@ -172,7 +491,7 @@
               }
               
             }
-            .pic-explain {
+            .pic-description {
               margin: 20px 0 0 0;
               width: 140px;
               height: 60px;
@@ -189,6 +508,7 @@
             border: 2px dotted @darkGray;
             line-height: 60px;
             font-size: 20px;
+            vertical-align: top;
             input {
               width: 100%;
               height: 100%;

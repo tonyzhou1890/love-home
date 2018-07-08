@@ -3,6 +3,7 @@ import axios from "axios";
 const base = {};
 
 base.install = function(Vue,options){
+  //POST 请求
   Vue.prototype._POST = function(post_data,func){
     axios({
       method: 'post',
@@ -25,6 +26,7 @@ base.install = function(Vue,options){
       func(response);
     });
   },
+  //图片检查
   Vue.prototype._CHECK_PIC = function(rules,pic){
     //预设变量
     let variable = rules;
@@ -41,6 +43,7 @@ base.install = function(Vue,options){
         if(!r){
           result.right = false;
           resolve(result);
+          return;
         }
       }
       
@@ -49,6 +52,7 @@ base.install = function(Vue,options){
         if(pic.size > rules.size){
           result.right = false;
           resolve(result);
+          return;
         }
       }
       
@@ -61,9 +65,9 @@ base.install = function(Vue,options){
         temp_pic.src = e.target.result;
         temp_pic.onload = function(){ 
 
-          console.log(temp_pic.width);
-          console.log(temp_pic.height);
-          console.log(variable);
+          // console.log(temp_pic.width);
+          // console.log(temp_pic.height);
+          // console.log(variable);
 
           //检查宽高
           //检查最小宽高
@@ -71,6 +75,7 @@ base.install = function(Vue,options){
             if(temp_pic.width < rules.min_width || temp_pic.height < rules.min_height){
               result.right = false;
               resolve(result);
+              return;
             }
           }
           //检查最大宽高
@@ -78,26 +83,29 @@ base.install = function(Vue,options){
             if(temp_pic.width > rules.max_width || temp_pic.height > rules.max_height){
               result.right = false;
               resolve(result);
+              return;
             }
           }
           //检查最小宽高比
           if(rules.min_ratio){
-            if(temp_pic.width / temp_pic.height < rules.min_ratio){
+            if(temp_pic.width / temp_pic.height < rules.min_ratio * 0.9){
               result.right = false;
               resolve(result);
+              return;
             }
           }
           //检查最大宽高比
           if(rules.max_ratio){
-            if(temp_pic.width / temp_pic.height > rules.max_ratio){
+            if(temp_pic.width / temp_pic.height > rules.max_ratio * 1.1){
               result.right = false;
               resolve(result);
+              return;
             }
           }
 
           //图片有效
           result.data = temp_pic.src;
-          console.log(result);
+          // console.log(result);
           resolve(result);
 
         }

@@ -433,7 +433,6 @@ export default {
           console.log(response.data);
           if('success' === response.data.response){
             this.button_text = '成功';
-            setTimeout( () => this.button_text = '确定' , 1000);
           }else{
             this.button_text = '后台错误';
           }
@@ -459,19 +458,33 @@ export default {
       let rule = {};
       if('profile' === which){
         rule = {
+          type: [
+            'jpeg',
+            'gif',
+            'png'
+          ],
           size: 20* 1024,
           min_width: 50,
           max_width: 100,
           min_height: 50,
-          max_height: 100
+          max_height: 100,
+          min_ratio: 1,
+          max_ratio: 1
         };
       }else{
         rule = {
+          type: [
+            'jpeg',
+            'gif',
+            'png'
+          ],
           size: 200* 1024,
           min_width: 560,
           max_width: 560 * 1.5,
           min_height: 760,
-          max_height: 760 * 1.5
+          max_height: 760 * 1.5,
+          min_ratio: 0.73,
+          max_ratio: 0.73
         };
       }
       this._CHECK_PIC(rule,pic)
@@ -528,79 +541,79 @@ export default {
       //   }
       // }
     },
-    check_pic(pic,which){
-      //预设变量
-      let variable = {};
-      if('profile' === which){
-        variable = {
-          type: [
-            'jpeg',
-            'gif',
-            'png'
-          ],
-          size: 20* 1024,
-          min_width: 50,
-          max_width: 100,
-          min_height: 50,
-          max_height: 100,
-          min_ratio: 1,
-          max_ratio: 1
-        };
-      }else {
-        variable = {
-          type: [
-            'jpeg',
-            'gif',
-            'png'
-          ],
-          size: 200* 1024,
-          min_width: 560,
-          max_width: 560 * 1.5,
-          min_height: 760,
-          max_height: 760 * 1.5,
-          min_ratio: 0.73,
-          max_ratio: 0.73
-        }
-      }
-      let result = {
-        right: true,
-        data: null
-      };
-      return new Promise(function(resolve,reject){
-        //检查图片格式
-        if(pic.type !== 'image/jpeg' && pic.type !== 'image/gif' && pic.type !== 'image/png'){
+    // check_pic(pic,which){
+    //   //预设变量
+    //   let variable = {};
+    //   if('profile' === which){
+    //     variable = {
+    //       type: [
+    //         'jpeg',
+    //         'gif',
+    //         'png'
+    //       ],
+    //       size: 20* 1024,
+    //       min_width: 50,
+    //       max_width: 100,
+    //       min_height: 50,
+    //       max_height: 100,
+    //       min_ratio: 1,
+    //       max_ratio: 1
+    //     };
+    //   }else {
+    //     variable = {
+    //       type: [
+    //         'jpeg',
+    //         'gif',
+    //         'png'
+    //       ],
+    //       size: 200* 1024,
+    //       min_width: 560,
+    //       max_width: 560 * 1.5,
+    //       min_height: 760,
+    //       max_height: 760 * 1.5,
+    //       min_ratio: 0.73,
+    //       max_ratio: 0.73
+    //     }
+    //   }
+    //   let result = {
+    //     right: true,
+    //     data: null
+    //   };
+    //   return new Promise(function(resolve,reject){
+    //     //检查图片格式
+    //     if(pic.type !== 'image/jpeg' && pic.type !== 'image/gif' && pic.type !== 'image/png'){
           
-          result.right = false;
-          resolve(result);
-        }
-        //检查图片大小
-        if(pic.size > variable.size){
-          result.right = false;
-          resolve(result);
-        }
-        //检查图片宽高
-        let reader = new FileReader();
-        //读取图片
-        reader.readAsDataURL(pic);
-        reader.onload = function(e){
-          let temp_pic = new Image();
-          temp_pic.src = e.target.result;
-          temp_pic.onload = function(){ //检查宽高
+    //       result.right = false;
+    //       resolve(result);
+    //     }
+    //     //检查图片大小
+    //     if(pic.size > variable.size){
+    //       result.right = false;
+    //       resolve(result);
+    //     }
+    //     //检查图片宽高
+    //     let reader = new FileReader();
+    //     //读取图片
+    //     reader.readAsDataURL(pic);
+    //     reader.onload = function(e){
+    //       let temp_pic = new Image();
+    //       temp_pic.src = e.target.result;
+    //       temp_pic.onload = function(){ //检查宽高
 
-            console.log(temp_pic.width);
-            console.log(temp_pic.height);
-            console.log(variable);
-            if(temp_pic.width > variable.max_width || temp_pic.width < variable.min_width || temp_pic.height > variable.max_height || temp_pic.height < variable.min_height || temp_pic.width / temp_pic.height > variable.min_width / variable.min_height * 1.1 || temp_pic.width / temp_pic.height < variable.min_width / variable.min_height / 1.1){
-              result.right = false;
-            }else{
-              result.data = temp_pic.src;
-            }
-            console.log(result);
-            resolve(result);
-          }
-        }
-      })
-    },
+    //         console.log(temp_pic.width);
+    //         console.log(temp_pic.height);
+    //         console.log(variable);
+    //         if(temp_pic.width > variable.max_width || temp_pic.width < variable.min_width || temp_pic.height > variable.max_height || temp_pic.height < variable.min_height || temp_pic.width / temp_pic.height > variable.min_width / variable.min_height * 1.1 || temp_pic.width / temp_pic.height < variable.min_width / variable.min_height / 1.1){
+    //           result.right = false;
+    //         }else{
+    //           result.data = temp_pic.src;
+    //         }
+    //         console.log(result);
+    //         resolve(result);
+    //       }
+    //     }
+    //   })
+    // },
     check_nickname(){
       if(this.info.nickname === this.origin_info.user.nickname){
         this.judge_mark.nickname_error = false;

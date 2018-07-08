@@ -17,11 +17,12 @@ mysqli_select_db($db,"love_home");
 $GLOBALS['query']['base'] = "SELECT l_key,value FROM website WHERE l_key = 'logo' OR l_key = 'nopic' OR l_key = 'default_profile'";
 $GLOBALS['query']['banner'] = "SELECT l_key,value FROM website WHERE l_key = 'banner'";
 $GLOBALS['query']['nickname'] = "SELECT nickname FROM user WHERE nickname = ";
-$GLOBALS['query']['d_nickname'] = "SELECT nickname FROM designer WHERE nickname = ";
+$GLOBALS['query']['u_id'] = "SELECT id FROM user WHERE token = ";
+$GLOBALS['query']['d_id'] = "SELECT id FROM designer WHERE u_id = ";
 $GLOBALS['query']['password'] = "SELECT password FROM user WHERE nickname = ";
 $GLOBALS['query']['token'] = "SELECT nickname,profile FROM user WHERE token = ";
 $GLOBALS['query']['user_info'] = "SELECT * FROM user WHERE token = ";
-$GLOBALS['query']['designer_info'] = "SELECT * FROM designer WHERE nickname = ";
+$GLOBALS['query']['designer_info'] = "SELECT * FROM designer WHERE u_id = ";
 
 //获取基本信息
 $GLOBALS['base_info'] = common_query($GLOBALS['query']['base'],'无记录');
@@ -107,22 +108,136 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
   $setting = json_decode(urldecode($_POST['data']));
   $result = setting_info($setting);
   print_r(json_encode($result));
+}else if(isset($_POST['upload'])){  //上传案例
+  $upload_data = json_decode(urldecode($_POST['data']));
+  $token = urldecode($_POST['token']);
+  $result = upload_case($upload_data,$token);
+  print_r(json_encode($result));
 };
+
+//上传案例
+function upload_case($data,$token){
+  $res = new StdClass();
+  
+  //判断图片是否都是base64并抽取图片
+  //封面
+  $pics = [];
+  $pics[0] = $data -> cover;
+  if(!'data:image' === substr($pics[0],0,10)){
+    $res -> response = 'error';
+    return $res;
+  }
+  //内容
+  $pics[1] = [];
+  $c = $data -> content;
+  for($i = 0,$c_len = count($c); $i < $c_len; $i++){
+    $pics[1][$i] = [];
+    $d = $c[$i] -> detail;
+    for($j = 1,$d_len = count($d); $j < $d_len; $j++){
+      if(!'data:image' === substr($d[$j] -> path,0,10)){
+        $res -> response = 'error';
+        return $res;
+      }
+      $pics[1][$i][$j] = $d[$j] -> path;
+    }
+  }
+  // print_r($pics);
+  //图片转换
+  //封面
+  $result = base64image($pics[0],'./images/case/',date('YmdHis').rand(100000,999999));
+  if('error' === $result -> result){
+    $res -> response = 'error';
+    return;
+  }
+  $pics[0] = $result -> path;
+  //内容
+  for($i = 0,$c_len = count($pics[1]); $i < $c_len; $i++){
+    for($j = 1,$d_len = count($pics[1][$i]); $j <= $d_len; $j++){
+      $result = base64image($pics[1][$i][$j],'./images/case/',date('YmdHis').rand(100000,999999));
+      if('error' === $result -> result){
+        $res -> response = 'error';
+        return;
+      }
+      $pics[1][$i][$j] = $result -> path;
+    }
+  }
+  // print_r($pics);
+  //图片路径返回
+  $data -> cover = $pics[0];
+  for($i = 0,$c_len = count($pics[1]); $i < $c_len; $i++){
+    for($j = 1,$d_len = count($pics[1][$i]); $j <= $d_len; $j++){
+      $data -> content[$i] -> detail[$j] -> path = $pics[1][$i][$j];
+    }
+  }
+  //数据处理
+  $content_str = str_replace('\\','\\\\',json_encode($data -> content));
+  $u_id = common_query($GLOBALS['query']['u_id'].'"'.$token.'"','error');
+  $u_id = $u_id[0]['id'];
+  $d_id = common_query($GLOBALS['query']['d_id'].$u_id,'error');
+  $d_id = $d_id[0]['id'];
+  //写入数据库
+  $query = "INSERT INTO cases
+    (
+      title,
+      style,
+      house,
+      cover,
+      content,
+      d_id
+    ) VALUES (
+      '{$data -> title}',
+      '{$data -> style}',
+      '{$data -> house}',
+      '{$data -> cover}',
+      '$content_str',
+      $d_id
+    )";
+  $insert_res = common_insert($query);
+  if(isset($insert_res -> errorMsg)){
+    $res -> response = 'error';
+    return $res;
+  }
+  global $db;
+  $c_id = mysqli_insert_id($db);
+  $designer_cases = common_query("SELECT cases FROM designer WHERE u_id = '$u_id'",'error');
+  $designer_cases = $designer_cases[0]['cases'];
+  if(!$designer_cases){
+    $query = "UPDATE designer SET cases = '$c_id' WHERE id = $d_id";
+    common_insert($query);
+  }else{
+    $designer_cases .="-$c_id";
+    $query = "UPDATE designer SET cases = '$designer_cases' WHERE id = $d_id";
+    common_insert($query);
+  }
+  $res -> response = 'success';
+  $res -> data = $data;
+  return $res;
+}
+
+//图像缩放
+function pic_scale($path,$suffix,$img){
+
+}
 
 //设置个人信息
 function setting_info($setting){
-  if($setting -> user -> profile !== $GLOBALS['base_info'][2]['value'] && substr($setting -> user -> profile,0,10) === 'data:image'){
+  //如果是base64
+  // $setting -> user -> profile !== $GLOBALS['base_info'][2]['value']
+  if(substr($setting -> user -> profile,0,10) === 'data:image'){
     $res = base64image($setting -> user -> profile,'./images/profile/',date('YmdHis').rand(100000,999999));
     if('success' === $res -> result){
       $setting -> user -> profile = $res -> path;
     }else{
       $setting -> user -> profile = $GLOBALS['base_info'][2]['value'];
     }
+  }else if('./images/' === substr($setting -> user -> profile,0,9)){
+    //如果是库文件
   }else{
     $setting -> user -> profile = $GLOBALS['base_info'][2]['value'];
   }
   $u = $setting -> user;
-  $old_info = common_query($GLOBALS['query']['user_info'].'"'.$u -> token.'"','err');
+  $u_id = common_query($GLOBALS['query']['u_id'].'"'.$u -> token.'"','err');
+  $u_id = $u_id[0]['id'];
   // print_r("120");
   // print_r($GLOBALS['query']);
   $query1 = "UPDATE user SET nickname = '{$u -> nickname}', birth = '{$u -> birth}', gender = '{$u -> gender}', profile = '{$u -> profile}' WHERE token = '{$u -> token}'";
@@ -142,24 +257,25 @@ function setting_info($setting){
     $d_contact = str_replace('\\','\\\\',json_encode($d -> contact));
     //检查图片是否赋值并且是base64
     if($d -> photo && substr($d -> photo,0,10) === 'data:image'){
-      $res = base64image($d -> photo, './images/profile', date('YmdHis').rand(100000,999999));
+      $res = base64image($d -> photo, './images/profile/', date('YmdHis').rand(100000,999999));
       if('success' === $res -> result){
         $d -> photo = $res -> path;
       }else{
         $d -> photo = null;
       }
+    }else if($d -> photo && substr($d -> photo,0,9) === './images/'){
+
     }else{
       $d -> photo = null;
     }
     //是否已经是设计师
-    // print_r($GLOBALS['query']['d_nickname'].'"'.$u -> nickname.'"');
-    $d_result = common_query($GLOBALS['query']['d_nickname'].'"'.$u -> nickname.'"','error');
+    $d_result = common_query($GLOBALS['query']['d_id'].'"'.$u_id.'"','error');
     //如果还不是，就插入信息
     // print_r($d_result);
     if('no_result' === $d_result[0]){
       $q = "INSERT INTO designer 
         (
-          nickname,
+          u_id,
           photo,
           counseling,
           design,
@@ -171,7 +287,7 @@ function setting_info($setting){
           style,
           contact
         ) VALUES (
-          '{$u -> nickname}',
+          '{$u_id}',
           '{$d -> photo}',
           '{$d -> counseling}',
           '{$d -> design}',
@@ -195,7 +311,7 @@ function setting_info($setting){
         introduction = '{$d -> introduction}',
         style = '{$d_style}',
         contact = '{$d_contact}'
-        WHERE nickname = '{$u -> nickname}';
+        WHERE u_id = '{$u_id}';
       ";
     }
     // print_r($q);
@@ -237,8 +353,8 @@ function getting_info($token){
   $res = new StdClass();
   $res -> user = array2object($result[0]);
   // print_r(json_encode(array2object($result[0])));
-  $nickname = $res -> user -> nickname;
-  $result = common_query($GLOBALS['query']['designer_info'].'"'.$nickname.'"','err');
+  $u_id = $res -> user -> id;
+  $result = common_query($GLOBALS['query']['designer_info'].$u_id,'err');
   
   $res -> designer = array2object($result[0]);
   if($res -> designer){
