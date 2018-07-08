@@ -2,7 +2,7 @@
   <div class="panel ova">
     <div class="header">
       <div class="logo fl">
-        <img :src="logo">
+        </a href="./" target="_blank"><img :src="logo"></a>
       </div>
       
       <div class="user fr">

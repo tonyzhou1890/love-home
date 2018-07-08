@@ -44,7 +44,7 @@
         <span class="error"
           v-show="info.cover_error"
         >!</span>
-        <span class="explain">必填(最大100k。建议宽高比10：6。)</span>
+        <span class="explain">必填(最大35k。建议宽高比10：6。)</span>
       </li>
       <li class="pic-upload-li">
         <span>图片：</span>
@@ -255,7 +255,7 @@ export default {
       console.log(e.target.files);
       let pic = e.target.files[0];
       let rule = {
-        size: 100 * 1024,
+        size: 35 * 1024,
         type: [
           'jpeg',
           'png',

@@ -169,6 +169,13 @@ function upload_case($data,$token){
       $data -> content[$i] -> detail[$j] -> path = $pics[1][$i][$j];
     }
   }
+  //生成内容图片缩略图
+  for($i = 0,$c_len = count($pics[1]); $i < $c_len; $i++){
+    for($j = 1,$d_len = count($pics[1][$i]); $j <= $d_len; $j++){
+      $result = scalePic($pics[1][$i][$j],$maxX=260,$maxY=170,'thumb');
+      $data -> content[$i] -> detail[$j] -> thumb = $result;
+    }
+  }
   //数据处理
   $content_str = str_replace('\\','\\\\',json_encode($data -> content));
   $u_id = common_query($GLOBALS['query']['u_id'].'"'.$token.'"','error');
@@ -212,11 +219,6 @@ function upload_case($data,$token){
   $res -> response = 'success';
   $res -> data = $data;
   return $res;
-}
-
-//图像缩放
-function pic_scale($path,$suffix,$img){
-
 }
 
 //设置个人信息
@@ -554,4 +556,96 @@ function object2array($object) {
     $array = $object;
   }
   return $array;
+}
+
+/**
+ * @function 等比缩放函数(以保存的方式实现)
+ * @param string $picname 被缩放的处理图片源
+ * @param int $maxX 缩放后图片的最大宽度
+ * @param int $maxY 缩放后图片的最大高度
+ * @param string $pre 缩放后图片名的前缀名
+ * @return string 返回后的图片名称(带路径),如a.jpg --> s_a.jpg
+ */
+function scalePic($picname,$maxX=100,$maxY=100,$pre='s_')
+{
+    $info = getimagesize($picname); //获取图片的基本信息
+    $width = $info[0];//获取宽度
+    $height = $info[1];//获取高度
+    //判断图片资源类型并创建对应图片资源
+    $im = getPicType($info[2],$picname);
+    //计算缩放比例
+    $scale = ($maxX/$width)>($maxY/$height)?$maxY/$height:$maxX/$width;
+    //计算缩放后的尺寸
+    $sWidth = floor($width*$scale);
+    $sHeight = floor($height*$scale);
+    //创建目标图像资源
+    $nim = imagecreatetruecolor($sWidth,$sHeight);
+    //等比缩放
+    imagecopyresampled($nim,$im,0,0,0,0,$sWidth,$sHeight,$width,$height);
+    //输出图像
+    $newPicName = outputImage($picname,$pre,$nim);
+    //释放图片资源
+    imagedestroy($im);
+    imagedestroy($nim);
+    return $newPicName;
+}
+
+/**
+ * function 判断并返回图片的类型(以资源方式返回)
+ * @param int $type 图片类型
+ * @param string $picname 图片名字
+ * @return 返回对应图片资源
+ */
+function getPicType($type,$picname)
+{
+    $im=null;
+    switch($type)
+    {
+        case 1:  //GIF
+            $im = imagecreatefromgif($picname);
+            break;
+        case 2:  //JPG
+            $im = imagecreatefromjpeg($picname);
+            break;
+        case 3:  //PNG
+            $im = imagecreatefrompng($picname);
+            break;
+        case 4:  //BMP
+            $im = imagecreatefromwbmp($picname);
+            break;
+        default:
+            die("不认识图片类型");
+            break;
+    }
+    return $im;
+}
+
+/**
+ * function 输出图像
+ * @param string $picname 图片名字
+ * @param string $pre 新图片名前缀
+ * @param resourse $nim 要输出的图像资源
+ * @return 返回新的图片名
+ */
+function outputImage($picname,$pre,$nim)
+{
+    $info = getimagesize($picname);
+    $picInfo = pathInfo($picname);
+    $newPicName = $picInfo['dirname'].'/'.$pre.$picInfo['basename'];//输出文件的路径
+    switch($info[2])
+    {
+        case 1:
+            imagegif($nim,$newPicName);
+            break;
+        case 2:
+            imagejpeg($nim,$newPicName);
+            break;
+        case 3:
+            imagepng($nim,$newPicName);
+            break;
+        case 4:
+            imagewbmp($nim,$newPicName);
+            break;
+    }
+    return $newPicName;
 }
