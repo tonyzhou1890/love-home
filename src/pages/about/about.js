@@ -1,5 +1,6 @@
 import Vue from "vue/dist/vue.js";
 import css from "../../css/base.less";
+import "../../source/font/iconfont.css";
 
 import vueheader from "../../components/header.vue";
 import vuebody from "../../components/aboutbody.vue";

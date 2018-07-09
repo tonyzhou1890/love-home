@@ -323,7 +323,7 @@ export default {
       this.info.profile = u_info.profile;
 
       //是否是设计师
-      if(this.origin_info.designer != 'no_result'){
+      if(this.origin_info.designer){
         console.log('is designer');
         this.is_designer = true;
         this.to_be_designer = true;

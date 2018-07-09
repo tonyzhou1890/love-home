@@ -2,25 +2,28 @@
   <div class="panel ova">
     <div class="header">
       <div class="logo fl">
-        </a href="./" target="_blank"><img :src="logo"></a>
+        <a href="./" target="_blank"><img :src="logo"></a>
       </div>
       
       <div class="user fr">
-        <i class="iconfont cp">&#xe609;</i>
-        <i class="iconfont cp">&#xe659;</i>
+        <a @click="sorry">
+          <i class="iconfont cp">&#xe609;</i>
+        </a>
+        
+        <i class="iconfont cp" @click="logout">&#xe659;</i>
       </div>
     </div>
     <div class="sidebar fl ova">
       <router-link to="/setting">
         <p class="tac cp">设置</p>
       </router-link>
-      <router-link to="/upload">
+      <router-link to="/upload" v-if="is_designer">
         <p class="tac cp">上传案例</p>
       </router-link>
     </div>
     <div class="content fl">
       <keep-alive>
-        <router-view v-if="has_token"></router-view>
+        <router-view></router-view>
       </keep-alive>
     </div>
   </div>
@@ -63,18 +66,26 @@ export default {
     return {
       logo: './images/website/logo.svg',
       info: '',
-      has_token: true
+      is_designer: false
     }
   },
   router,
   store,
   methods: {
     clear(){
+
       // console.log(this.$router);
       document.body.innerHTML = `
-      <p style="font-size: 20px;text-align:center;padding-top:100px;">请<a href="./login.html#/login" target="_blank">登录</a>或<a href="./login.html#/register" target="_blank">注册</a></p>
+      <p style="font-size: 20px;text-align:center;padding-top:100px;">请<a href="./login.html#/login" target="_blank" style="color:#db3939;">登录</a>或<a href="./login.html#/register" target="_blank" style="color:#db3939;">注册</a></p>
       `;
       // this.$destroy();
+    },
+    sorry(){
+      alert('该功能暂不可用！');
+    },
+    logout(){
+      window.localStorage.removeItem('lh_token');
+      this.clear()
     }
   },
   created(){
@@ -96,11 +107,11 @@ export default {
           }
           axios.get('./?setting='+token)
             .then(response => {
-              // console.log(response.data);
-              console.log(this);
-              console.log(this.$router);
+              
               this.info = response.data;
-              // this.$router.options.routes[1].component.props.origin_info = response.data;
+              if(this.info.designer){
+                this.is_designer = true;
+              }
               this.$store.commit('store_origin_info',this.info);
             })
         }
@@ -148,6 +159,9 @@ export default {
         font-size: 30px;
         margin: 0 12px;
         color: @white;
+        &:hover {
+          color: @red;
+        }
       }
     }
   }

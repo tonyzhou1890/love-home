@@ -4,8 +4,8 @@
       v-for="(item,index) in designers"
       :key = "index"
     >
-      <a :href = "item.href" target="_blank"><img :src="item.src" :alt="item.name" class="bgc"></a><br />
-      <a :href = "item.href" target="_blank"><span v-html="item.name" class="ilb"></span></a>
+      <a :href = "item.id" target="_blank"><img :src="item.photo" :alt="item.name" class="bgc"></a><br />
+      <a :href = "item.id" target="_blank"><span v-html="item.name" class="ilb"></span></a>
     </div>
   </div>
 </template>

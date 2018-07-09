@@ -1,7 +1,9 @@
 <template>
   <header>
     <div class="logo">
-      <img :src="logoPath" alt="logo">
+      <a href="./">
+        <img :src="logoPath" alt="logo" class="cp">
+      </a>
     </div>
     <div class="city">
       <div class="city-selected" 
@@ -48,7 +50,9 @@
         <option value="case">案例</option>
         <option value="designer">设计师</option>
       </select>
-      <p>搜索</p>
+      <p
+        @click="sorry"
+      >搜索</p>
     </div>
     <div class="user">
       <p v-show = "!login" class="no-login">
@@ -61,9 +65,16 @@
         <div class="info">
           <span class="nickname" v-html="nickname"></span>
           <hr>
-          <i class="iconfont" alt = "设置">&#xe606;</i>
-          <i class="iconfont" alt = "收藏">&#xe609;</i>
-          <i class="iconfont" alt = "退出">&#xe659;</i>
+          <a href="./panel.html" target="_blank">
+            <i class="iconfont cp" alt = "设置">&#xe606;</i>
+          </a>
+          <a @click="sorry">
+            <i class="iconfont cp" alt = "收藏">&#xe609;</i>
+          </a>
+          <a @click="logout">
+            <i class="iconfont cp" alt = "退出">&#xe659;</i>
+          </a>
+          
         </div>
       </div>
     </div>
@@ -158,6 +169,16 @@ export default {
     leaveAreas(){
       this.hasEnter = false;
       this.showAllCity = false;
+    },
+    search(){
+      
+    },
+    sorry(){
+      alert('此功能暂不可用！');
+    },
+    logout(){
+      window.localStorage.removeItem('lh_token');
+      this.login = false;
     }
   },
   created(){
@@ -190,7 +211,6 @@ export default {
 
 
 <style lang="less" scoped>
-@import url('../source/font/iconfont.css');
 @white: white;
 @darkGray: #666;
 @pink: #edd9d9;
@@ -366,6 +386,9 @@ header {
       i {
         font-size: 25px;
         padding: 6px;
+        &:hover {
+          color: @red;
+        }
       }
     }
   }

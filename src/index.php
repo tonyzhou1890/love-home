@@ -16,6 +16,8 @@ mysqli_select_db($db,"love_home");
 //查询语句
 $GLOBALS['query']['base'] = "SELECT l_key,value FROM website WHERE l_key = 'logo' OR l_key = 'nopic' OR l_key = 'default_profile'";
 $GLOBALS['query']['banner'] = "SELECT l_key,value FROM website WHERE l_key = 'banner'";
+$GLOBALS['query']['home_designer'] = "SELECT id,name,photo FROM designer ORDER BY id DESC LIMIT 4";
+$GLOBALS['query']['home_designer_random'] = "SELECT id,name,photo FROM designer ORDER BY RAND() LIMIT 4";
 $GLOBALS['query']['nickname'] = "SELECT nickname FROM user WHERE nickname = ";
 $GLOBALS['query']['u_id'] = "SELECT id FROM user WHERE token = ";
 $GLOBALS['query']['d_id'] = "SELECT id FROM designer WHERE u_id = ";
@@ -37,6 +39,7 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
   $obj -> designer = home_designer();
   $obj -> cases = home_case();
 
+  // print_r($obj);
   replace_template('./home.html','爱家',json_encode($obj));
   // $query = 'SELECT * FROM website';
   // $result_array = common_query($query,'无记录');
@@ -356,8 +359,13 @@ function getting_info($token){
   $res -> user = array2object($result[0]);
   // print_r(json_encode(array2object($result[0])));
   $u_id = $res -> user -> id;
+  // print_r($u_id);
   $result = common_query($GLOBALS['query']['designer_info'].$u_id,'err');
-  
+  // print_r($result);
+  if('no_result' === $result[0]){
+    $result[0] = null;
+  }
+
   $res -> designer = array2object($result[0]);
   if($res -> designer){
     $res -> designer -> style = json_decode($res -> designer -> style);
@@ -417,9 +425,14 @@ function generate_token($start){
 //查询 banner
 function banner(){
   $result_array = common_query($GLOBALS['query']['banner'],'无记录');
+  // print_r(json_decode($result_array[0]['value']));
   $default_banner = new StdClass();
   $default_banner -> href = '#';
   $default_banner -> src = $GLOBALS['base_info'][1]['value'];
+  if($result_array[0]['value']){
+    
+    $result_array[0]['value'] = object2array(json_decode($result_array[0]['value']));
+  }
   $result_array[0]['value'] = patch($result_array[0]['value'],3,$default_banner);
   $result_array_obj = array2object($result_array[0]['value']);
   return $result_array_obj;
@@ -429,26 +442,48 @@ function banner(){
 //首页设计师
 function home_designer(){
   $designer = new StdClass();
-  $random = [];
-  $new = [];
-  $a_de = new StdClass();
-  $a_de -> href = '#';
-  $a_de -> src = $GLOBALS['base_info'][1]['value'];
-  $a_de -> name = '设计师';
-  $designer -> random_designer = patch($random,4,$a_de);
-  $designer -> new_designer = patch($new,4,$a_de);
+  $random = get_designer('random');
+  $new = get_designer('');
+  $designer -> random_designer = $random;
+  $designer -> new_designer = $new;
   return $designer;
+}
+
+//设计师4位
+function get_designer($is_random){
+  $a_de = [];
+  $a_de['id'] = '#';
+  $a_de['name'] = '设计师';
+  $a_de['photo'] = $GLOBALS['base_info'][1]['value'];
+  
+  if('random' === $is_random){
+    $result = common_query($GLOBALS['query']['home_designer_random'],'error');
+  }else{
+    $result = common_query($GLOBALS['query']['home_designer'],'error');
+  }
+  if('no_result' === $result[0]){
+    $result = [];
+  }
+  $result = patch($result,4,$a_de);
+  return $result;
 }
 
 //首页案例
 function home_case(){
   $case = new StdClass();
   $temp = [];
-  $a_c = new StdClass();
-  $a_c -> href = '#';
-  $a_c -> src = $GLOBALS['base_info'][1]['value'];
-  $a_c -> title = '案例';
-  $case -> modern = ['现代简约',patch($temp,4,$a_c)];
+  $a_c = [];
+  $a_c['id'] = '#';
+  $a_c['cover'] = $GLOBALS['base_info'][1]['value'];
+  $a_c['title'] = '案例';
+
+  $modern = common_query("SELECT id,cover,title FROM cases WHERE style = '现代简约' ORDER BY id DESC LIMIT 4",'error');
+  if('no_result' === $modern){
+    $modern = $temp;
+  }
+
+
+  $case -> modern = ['现代简约',patch($modern,4,$a_c)];
   $case -> amercia = ['美式',patch($temp,4,$a_c)];
   $case -> europe = ['欧式',patch($temp,4,$a_c)];
   $case -> north = ['北欧',patch($temp,4,$a_c)];
