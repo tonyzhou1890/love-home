@@ -16,8 +16,8 @@ mysqli_select_db($db,"love_home");
 //查询语句
 $GLOBALS['query']['base'] = "SELECT l_key,value FROM website WHERE l_key = 'logo' OR l_key = 'nopic' OR l_key = 'default_profile'";
 $GLOBALS['query']['banner'] = "SELECT l_key,value FROM website WHERE l_key = 'banner'";
-$GLOBALS['query']['home_designer'] = "SELECT id,name,photo FROM designer ORDER BY id DESC LIMIT 4";
-$GLOBALS['query']['home_designer_random'] = "SELECT id,name,photo FROM designer ORDER BY RAND() LIMIT 4";
+$GLOBALS['query']['home_designer'] = "SELECT id,name,photo,thumb FROM designer ORDER BY id DESC LIMIT 4";
+$GLOBALS['query']['home_designer_random'] = "SELECT id,name,photo,thumb FROM designer ORDER BY RAND() LIMIT 4";
 $GLOBALS['query']['nickname'] = "SELECT nickname FROM user WHERE nickname = ";
 $GLOBALS['query']['u_id'] = "SELECT id FROM user WHERE token = ";
 $GLOBALS['query']['d_id'] = "SELECT id FROM designer WHERE u_id = ";
@@ -458,6 +458,7 @@ function setting_info($setting){
       $res = base64image($d -> photo, './images/profile/', date('YmdHis').rand(100000,999999));
       if('success' === $res -> result){
         $d -> photo = $res -> path;
+        $d -> thumb = scalePic($res -> path,$maxX=260,$maxY=350,'thumb');
       }else{
         $d -> photo = null;
       }
@@ -475,6 +476,7 @@ function setting_info($setting){
         (
           u_id,
           photo,
+          thumb,
           counseling,
           design,
           working_years,
@@ -487,6 +489,7 @@ function setting_info($setting){
         ) VALUES (
           '{$u_id}',
           '{$d -> photo}',
+          '{$d -> thumb}',
           '{$d -> counseling}',
           '{$d -> design}',
           '{$d -> working_years}',
@@ -497,9 +500,10 @@ function setting_info($setting){
           '{$d_style}',
           '{$d_contact}'
         );";
-    }else{
+    }else{  //否则就更新信息
       $q = "UPDATE designer SET 
         photo = '{$d -> photo}',
+        thumb = '{$d -> thumb}',
         counseling = '{$d -> counseling}',
         design = '{$d -> design}',
         working_years = '{$d -> working_years}',

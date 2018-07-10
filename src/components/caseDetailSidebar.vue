@@ -2,7 +2,9 @@
   <div class="sidebar fl">
     <div class="the-designer">
       <p class="title tac">本案例设计师</p>
-      <img :src="designer.photo" :alt="designer.name" class="photo">
+      <img 
+        :src="designer.thumb ? designer.thumb : designer.photo" :alt="designer.name" class="photo"
+      />
       <p class="item">
         <span class="item">姓名：</span>
         <span v-text="designer.name"></span>

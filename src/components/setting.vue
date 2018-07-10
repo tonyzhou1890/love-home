@@ -330,7 +330,7 @@ export default {
         //初始化设计师信息
         let d_info = this.origin_info.designer;
         this.info.name = d_info.name;
-        this.info.photo = d_info.photo;
+        this.info.photo = d_info.thumb ? d_info.thumb : d_info.photo;
         this.info.counseling = d_info.counseling;
         this.info.design = d_info.design;
         //工作时间
