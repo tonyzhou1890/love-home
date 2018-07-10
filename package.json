@@ -10,6 +10,7 @@
     "b_login": "webpack --config webpack.config.login.js && cp ./src/index.php ./dist/",
     "b_panel": "webpack --config webpack.config.panel.js && cp ./src/index.php ./dist/",
     "b_detail": "webpack --config webpack.config.detail.js && cp ./src/index.php ./dist/",
+    "b_designer": "webpack --config webpack.config.designer.js && cp ./src/index.php ./dist/",
     "cp": "cp ./src/index.php ./dist/"
   },
   "author": "tony",

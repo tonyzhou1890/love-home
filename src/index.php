@@ -91,7 +91,46 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
   $d_id = urldecode($_POST['d_contact']);
   $result = get_contact($d_id);
   print_r(json_encode($result));
+}else if(isset($_GET['d_id'])){ //获取设计师详情
+  $result = designer_info($_GET['d_id']);
+  $result -> base_info = $GLOBALS['base_info'];
+  if(isset($result -> designer_info)){
+    $title = $result -> designer_info['name'];
+  }else{
+    $title = $_GET['d_id'];
+  }
+  replace_template('./designer.html','设计师-'.$title,json_encode($result));
+  // print_r(json_encode($result));
 };
+
+//获取设计师详情
+function designer_info($d_id){
+  $res = new StdClass();
+  //设计师信息
+  $designer = common_query($GLOBALS['query']['designer_info_by_id'].$d_id,'error');
+  if('no_result' === $designer[0]){
+    $res -> response = 'no_result';
+    return $res;
+  }
+  $designer[0]['style'] = json_decode($designer[0]['style']);
+  unset($designer[0]['contact']);
+  $res -> designer_info = $designer[0];
+
+  //设计师的用户信息
+  $user = common_query("SELECT birth,gender FROM user WHERE id = ".$designer[0]['u_id'],'error');
+  $res -> user_info = $user[0];
+
+  //设计师相关案例
+  $cases = common_query("SELECT id,cover,title FROM cases WHERE d_id = {$designer[0]['id']} ORDER BY id DESC",'error');
+  if('no_result' === $cases[0]){
+    $res -> response = 'no_case';
+    return $res;
+  }
+  $res -> cases = $cases;
+  $res -> response = 'success';
+  return $res;
+}
+
 
 //获取设计师联系方式
 function get_contact($d_id){
@@ -184,7 +223,7 @@ function case_info($c_id){
   $res -> user_info = $user[0];
 
   //设计师相关案例
-  $cases_id = shuffle(explode('-',$designer[0]['cases']));
+  // $cases_id = shuffle(explode('-',$designer[0]['cases']));
   $query = "SELECT id, cover, title FROM cases WHERE d_id = ".$info[0]['d_id']." ORDER BY RAND() LIMIT 4";
   $related_cases = common_query($query,'error');
   if('no_result' === $related_cases){
