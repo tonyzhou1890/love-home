@@ -4,7 +4,7 @@
     <div v-for="cases in caseList" :key="cases.type" class="cases">
       <p>
         <span v-html="cases[0]"></span>
-        <span class="fr"><a target="_blank" :href="cases.href">查看更多</a></span>
+        <span class="fr"><a target="_blank" :href="cases.href" v-if="more">查看更多</a></span>
       </p>
       <cases :cases="cases[1]"></cases>
     </div>
@@ -22,6 +22,11 @@ export default {
   },
   components: {
     cases
+  },
+  data(){
+    return {
+      more: false
+    }
   }
 }
 </script>

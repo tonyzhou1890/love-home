@@ -41,12 +41,12 @@ export default {
     getDesigner(){
       this.rotate = true;
       axios.get('./?random=true').
-      then(function(response){
+      then(response => {
         if(response.data){
           this.randomDesigner = response.data;
         }
         this.rotate = false;
-      })
+      });
     }
   }
 }

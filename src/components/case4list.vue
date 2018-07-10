@@ -4,8 +4,8 @@
       v-for="(a_case,index) in cases"
       :key="index"
     >
-      <a :href="a_case.id" target="_blank"><img :src="a_case.cover" :alt="a_case.title" class="cover"></a><br />
-      <a :href="a_case.id" target="_blank"><span v-html="a_case.title" class="ellipse ilb"></span></a>
+      <a :href="'#' === a_case.id ? 'javascript:void(0)' : './?c_id=' + a_case.id" target="_blank"><img :src="a_case.cover" :alt="a_case.title" class="cover"></a><br />
+      <a :href="'#' === a_case.id ? 'javascript:void(0)' : './?c_id=' + a_case.id" target="_blank"><span v-html="a_case.title" class="ellipse ilb"></span></a>
     </div>
   </div>
 </template>
