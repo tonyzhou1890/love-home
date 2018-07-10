@@ -24,7 +24,12 @@ $GLOBALS['query']['d_id'] = "SELECT id FROM designer WHERE u_id = ";
 $GLOBALS['query']['password'] = "SELECT password FROM user WHERE nickname = ";
 $GLOBALS['query']['token'] = "SELECT nickname,profile FROM user WHERE token = ";
 $GLOBALS['query']['user_info'] = "SELECT * FROM user WHERE token = ";
+$GLOBALS['query']['user_info_by_id'] = "SELECT * FROM user WHERE id = ";
 $GLOBALS['query']['designer_info'] = "SELECT * FROM designer WHERE u_id = ";
+$GLOBALS['query']['designer_info_by_id'] = "SELECT * FROM designer WHERE id = ";
+$GLOBALS['query']['case_info'] = "SELECT * FROM cases WHERE id = ";
+$GLOBALS['query']['collection'] = "SELECT collection FROM user WHERE token = ";
+$GLOBALS['query']['d_contact'] = "SELECT contact FROM designer WHERE id = ";
 
 //获取基本信息
 $GLOBALS['base_info'] = common_query($GLOBALS['query']['base'],'无记录');
@@ -49,56 +54,8 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
 }else if(isset($_GET['about'])){  //关于爱家页面
   replace_template('./about.html','关于爱家',json_encode($obj));
 }else if(isset($_POST['login'])){ //登录/注册页面
-  $res = new StdClass();
-  //查询用户是否存在
-  if($_POST['login'] === 'query_user'){
-
-    $res = user_exist($GLOBALS['query']['nickname'].'"'.urldecode($_POST['nickname']).'"');
-    print_r(json_encode($res));
-  }else if($_POST['login'] === 'register'){
-    //注册
-    $result = new StdClass();
-    $res = user_exist($GLOBALS['query']['nickname'].'"'.urldecode($_POST['nickname']).'"');
-    if('y' === $res -> exist){
-      print_r(json_encode($res));
-      die();
-    }
-    if(isset($_POST['nickname']) && isset($_POST['pwd'])){
-      $register_nickname = urldecode($_POST['nickname']);
-      $register_pwd = urldecode($_POST['pwd']);
-      $query = "INSERT INTO user (nickname, password)
-      VALUES
-      ('$register_nickname', '$register_pwd')";
-      // print_r($query);
-      $result = common_insert($query);
-      print_r(json_encode($result));
-    }else{
-      $res -> response = 'error';
-      print_r(json_encode($res));
-    } 
-  }else if($_POST['login'] === 'login'){
-    //登录
-    $login_nickname = urldecode($_POST['nickname']);
-    $login_pwd = urldecode($_POST['pwd']);
-    $query = $GLOBALS['query']['password'].'"'.$login_nickname.'"';
-    $result = common_query($query,'err');
-    if($login_pwd === $result[0]['password']){
-
-      $token = $res -> token = generate_token($login_nickname);
-      $query = "UPDATE user SET token = '$token' WHERE nickname = '$login_nickname'";
-
-      $result = common_insert($query);
-      if(isset($result -> errorMsg)){
-        print_r(json_encode($result));
-        die();
-      }
-
-      $res -> response = 'success';
-    }else{
-      $res -> response = 'error';
-    }
-    print_r(json_encode($res));
-  }
+  $result = login();
+  print_r(json_encode($result));
 }else if(isset($_GET['token'])){  //token验证
   $token = urldecode($_GET['token']);
   $result = verify_token($token);
@@ -116,7 +73,182 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
   $token = urldecode($_POST['token']);
   $result = upload_case($upload_data,$token);
   print_r(json_encode($result));
+}else if(isset($_GET['c_id'])){ //案例详情
+  $result = case_info($_GET['c_id']);
+  $result -> base_info = $GLOBALS['base_info'];
+  if(isset($result -> case_info)){
+    $title = $result -> case_info['title'];
+  }else{
+    $title = $_GET['c_id'];
+  }
+  replace_template('./detail.html','案例-'.$title,json_encode($result));
+  // print_r(json_encode($result));
+}else if(isset($_POST['collection'])){  //collection相关
+  $c_data = json_decode(urldecode($_POST['data']));
+  $result = collection($_POST['collection'],$c_data);
+  print_r(json_encode($result));
+}else if(isset($_POST['d_contact'])){ //获取设计师联系方式
+  $d_id = urldecode($_POST['d_contact']);
+  $result = get_contact($d_id);
+  print_r(json_encode($result));
 };
+
+//获取设计师联系方式
+function get_contact($d_id){
+  $res = new StdClass();
+  $result = common_query($GLOBALS['query']['d_contact'].$d_id,'error');
+  if('no_result' === $result[0]){
+    $res -> response = 'error';
+    return $res;
+  }
+  $res -> response = 'success';
+  $res -> contact = json_decode($result[0]['contact']);
+  return $res;
+}
+
+//collection相关操作
+function collection($act,$data){
+  $res = new StdClass();
+  $result = common_query($GLOBALS['query']['collection'].'"'.$data -> token.'"','error');
+  if('query' === $act){
+    if('no_result' === $result[0]){
+      $res -> response = 'token_error';
+      return $res;
+    }
+    if(!$result[0]['collection']){
+      $res -> response = 'n';
+      return $res;
+    }
+    if(in_array($data -> c_id,explode('-',$result[0]['collection']))){
+      $res -> response = 'y';
+    }else{
+      $res -> response = 'n';
+    };
+    return $res;
+  }else if('add' === $act){
+    if(!$result[0]['collection']){
+      $collection = $data -> c_id;
+    }else{
+      $collection = $result[0]['collection']."-{$data -> c_id}";
+    }
+    $result = common_insert("UPDATE user SET collection = '$collection' WHERE token = '{$data -> token}'");
+    if(isset($result -> errorMsg)){
+      $res -> response = 'error';
+    }else{
+      $res -> response = 'success';
+    }
+    return $res;
+  }else if('delete' === $act){
+    $collection = array_diff(explode('-',$result[0]['collection']),[$data -> c_id]);
+    $collection = implode('-',$collection);
+    $result = common_insert("UPDATE user SET collection = '$collection' WHERE token = '{$data -> token}'");
+    if(isset($result -> errorMsg)){
+      $res -> response = 'error';
+    }else{
+      $res -> response = 'success';
+    }
+    return $res;
+  }else{
+    $res -> response = 'error';
+    return $res;
+  }
+
+}
+
+//案例详情页
+function case_info($c_id){
+  $res = new StdClass();
+  //案例信息
+  $info = common_query($GLOBALS['query']['case_info'].$c_id,'error');
+  if('no_result' === $info[0]){
+    $res -> response = 'no_result';
+    return $res;
+  }
+  
+  $info[0]['content'] = json_decode($info[0]['content']);
+  $res -> case_info = $info[0];
+
+  //相关设计师信息
+  $designer = common_query($GLOBALS['query']['designer_info_by_id'].$info[0]['d_id'],'error');
+  if('no_result' === $designer[0]){
+    $res -> response = 'no_designer';
+    return $res;
+  }
+
+  $designer[0]['style'] = json_decode($designer[0]['style']);
+  unset($designer[0]['contact']);
+  $res -> designer_info = $designer[0];
+
+  //设计师的用户信息
+  $user = common_query("SELECT birth,gender FROM user WHERE id = ".$designer[0]['u_id'],'error');
+  $res -> user_info = $user[0];
+
+  //设计师相关案例
+  $cases_id = shuffle(explode('-',$designer[0]['cases']));
+  $query = "SELECT id, cover, title FROM cases WHERE d_id = ".$info[0]['d_id']." ORDER BY RAND() LIMIT 4";
+  $related_cases = common_query($query,'error');
+  if('no_result' === $related_cases){
+    $res -> response = 'no_case';
+    return $res;
+  }
+
+  $res -> related_cases = $related_cases;
+
+  $res -> response = 'success';
+  return $res;
+}
+
+//登录或注册
+function login(){
+  $res = new StdClass();
+  //查询用户是否存在
+  if($_POST['login'] === 'query_user'){
+
+    $res = user_exist($GLOBALS['query']['nickname'].'"'.urldecode($_POST['nickname']).'"');
+    return $res;
+  }else if($_POST['login'] === 'register'){
+    //注册
+    $result = new StdClass();
+    $res = user_exist($GLOBALS['query']['nickname'].'"'.urldecode($_POST['nickname']).'"');
+    if('y' === $res -> exist){
+      return $res;
+    }
+    if(isset($_POST['nickname']) && isset($_POST['pwd'])){
+      $register_nickname = urldecode($_POST['nickname']);
+      $register_pwd = urldecode($_POST['pwd']);
+      $query = "INSERT INTO user (nickname, password)
+      VALUES
+      ('$register_nickname', '$register_pwd')";
+      // print_r($query);
+      $result = common_insert($query);
+      return $result;
+    }else{
+      $res -> response = 'error';
+      return $res;
+    } 
+  }else if($_POST['login'] === 'login'){
+    //登录
+    $login_nickname = urldecode($_POST['nickname']);
+    $login_pwd = urldecode($_POST['pwd']);
+    $query = $GLOBALS['query']['password'].'"'.$login_nickname.'"';
+    $result = common_query($query,'err');
+    if($login_pwd === $result[0]['password']){
+
+      $token = $res -> token = generate_token($login_nickname);
+      $query = "UPDATE user SET token = '$token' WHERE nickname = '$login_nickname'";
+
+      $result = common_insert($query);
+      if(isset($result -> errorMsg)){
+        return $result;
+      }
+
+      $res -> response = 'success';
+    }else{
+      $res -> response = 'error';
+    }
+    return $res;
+  }
+}
 
 //上传案例
 function upload_case($data,$token){
@@ -394,6 +526,7 @@ function verify_token($token){
     // print_r($token_expire);
     if($now - $ex[1] > $token_expire){
       $res -> response = 'error';
+      clear_token();
     }else if($now - $ex[1] > $token_expire/2 && $now - $ex[1] < $token_expire){
       $new_token = generate_token($ex[0]);
       $query = "UPDATE user SET token = '$new_token' WHERE token = '$token'";
@@ -420,6 +553,11 @@ function verify_token($token){
 //生成token
 function generate_token($start){
   return $start.'_'.time().'_'.rand(10000,99999);
+}
+
+//清除token
+function clear_token($token){
+  common_insert("UPDATE user SET token = null WHERE token = ".$token);
 }
 
 //查询 banner

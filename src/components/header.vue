@@ -66,13 +66,13 @@
           <span class="nickname" v-html="nickname"></span>
           <hr>
           <a href="./panel.html" target="_blank">
-            <i class="iconfont cp" alt = "设置">&#xe606;</i>
+            <i class="iconfont cp" alt = "设置" title = "设置">&#xe606;</i>
           </a>
           <a @click="sorry">
-            <i class="iconfont cp" alt = "收藏">&#xe609;</i>
+            <i class="iconfont cp" alt = "收藏" title = "收藏">&#xe609;</i>
           </a>
           <a @click="logout">
-            <i class="iconfont cp" alt = "退出">&#xe659;</i>
+            <i class="iconfont cp" alt = "退出" title = "退出">&#xe659;</i>
           </a>
           
         </div>
@@ -177,6 +177,11 @@ export default {
       alert('此功能暂不可用！');
     },
     logout(){
+      let token = encodeURIComponent(window.localStorage.lh_token);
+      axios.get('./?logout='+token)
+        .then(response => {
+          window.location.reload();
+        });
       window.localStorage.removeItem('lh_token');
       this.login = false;
     }
