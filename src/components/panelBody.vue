@@ -84,6 +84,12 @@ export default {
       alert('该功能暂不可用！');
     },
     logout(){
+      let token = encodeURIComponent(window.localStorage.lh_token);
+      axios.get('./?logout='+token)
+        .then(response => {
+          console.log(response.data);
+          // window.location.reload();
+        });
       window.localStorage.removeItem('lh_token');
       this.clear()
     }

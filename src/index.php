@@ -30,6 +30,7 @@ $GLOBALS['query']['designer_info_by_id'] = "SELECT * FROM designer WHERE id = ";
 $GLOBALS['query']['case_info'] = "SELECT * FROM cases WHERE id = ";
 $GLOBALS['query']['collection'] = "SELECT collection FROM user WHERE token = ";
 $GLOBALS['query']['d_contact'] = "SELECT contact FROM designer WHERE id = ";
+$GLOBALS['query']['logout'] = "UPDATE user SET token = null WHERE token = ";
 
 //获取基本信息
 $GLOBALS['base_info'] = common_query($GLOBALS['query']['base'],'无记录');
@@ -101,7 +102,28 @@ if((is_array($_GET)&&count($_GET)==0)&&(is_array($_POST)&&count($_POST))==0){
   }
   replace_template('./designer.html','设计师-'.$title,json_encode($result));
   // print_r(json_encode($result));
+}else if(isset($_GET['logout'])){ //退出
+  $token = urldecode($_GET['logout']);
+  $result = logout($token);
+  print_r($result);
+}else if(isset($_GET['random'])){ //随机四位设计师
+  $result = get_designer('random');
+  $res = new StdClass();
+  $res -> designer = $result;
+  print_r(json_encode($res));
 };
+
+//退出
+function logout($token){
+  $res = new StdClass();
+  $result = common_insert($GLOBALS['query']['logout'].'"'.$token.'"');
+  if(isset($result -> errorMsg)){
+    $res -> response = 'error';
+  }else{
+    $res -> response = 'success';
+  }
+  return $res;
+}
 
 //获取设计师详情
 function designer_info($d_id){

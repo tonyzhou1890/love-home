@@ -4,7 +4,7 @@
     <div class="random">
       <p>
         <span class="random-text">随机推荐</span>
-        <span class="change">换一批<i class="iconfont ilb icon" @click="getDesigner()" :class="{rotate:rotate}">&#xf004c;</i></span>
+        <span class="change">换一批<i class="iconfont ilb icon cp" @click="getDesigner()" :class="{rotate:rotate}">&#xf004c;</i></span>
       </p>
       <designer :designers="randomDesigner" :key="'randomDesigner'"></designer>
     </div>
@@ -40,10 +40,10 @@ export default {
   methods: {
     getDesigner(){
       this.rotate = true;
-      axios.get('./?random=true').
+      axios.get('./?random=designer').
       then(response => {
         if(response.data){
-          this.randomDesigner = response.data;
+          this.randomDesigner = response.data.designer;
         }
         this.rotate = false;
       });
