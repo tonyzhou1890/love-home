@@ -2,9 +2,11 @@ const webpack = require('webpack');
 const VueLoadPlugin = require('vue-loader/lib/plugin');
 const path = require('path');
 const HTMLPlugin = require('html-webpack-plugin');
+const miniCSS = require('mini-css-extract-plugin');
+const isDev = process.env.NODE_ENV === 'development';
 
 const config = {
-  mode: 'development',
+  mode: isDev ? 'development' : 'production',
   target: 'web',
   entry: {
     home: './src/pages/home/home.js',
@@ -27,14 +29,14 @@ const config = {
       {
         test: /\.css$/,
         use: [
-          'style-loader',
+          miniCSS.loader,
           'css-loader'
         ]
       },
       {
         test: /\.less$/,
         use: [
-          'style-loader',
+          miniCSS.loader,
           'css-loader',
           'less-loader'
         ]
@@ -59,6 +61,10 @@ const config = {
   },
   plugins: [
     new VueLoadPlugin(),
+    new miniCSS({
+      filename: "css/[name].css",
+      allChunks: true
+    }),
     new HTMLPlugin({
       template: './src/pages/home/home.html',
       filename: './home.html',
