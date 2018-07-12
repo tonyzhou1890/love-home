@@ -2,7 +2,7 @@
 
 $host = 'localhost';
 $user = 'root';
-$password = '9306251239zxt';
+$password = '';
 $token_expire = 250000;
 
 //连接数据库
