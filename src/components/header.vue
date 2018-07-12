@@ -63,15 +63,13 @@
       <div class="has-login hidden" v-show = "login">
         <img :src="profile" alt="头像" class="profile">
         <div class="info">
-          <span class="nickname" v-html="nickname"></span>
+          <span class="nickname ellipse" v-html="nickname"></span>
           <hr>
           <a href="./panel.html" target="_blank">
             <i class="iconfont cp" alt = "设置" title = "设置">&#xe606;</i>
-          </a>
-          <a @click="sorry">
+          </a><a @click="sorry">
             <i class="iconfont cp" alt = "收藏" title = "收藏">&#xe609;</i>
-          </a>
-          <a @click="logout">
+          </a><a @click="logout">
             <i class="iconfont cp" alt = "退出" title = "退出">&#xe659;</i>
           </a>
           
@@ -184,6 +182,14 @@ export default {
         });
       window.localStorage.removeItem('lh_token');
       this.login = false;
+    },
+    remove_class(el,name){
+      let classes = el.className.split(' ');
+      let index = classes.indexOf(name);
+      if(index){
+        classes.splice(index,1);
+      }
+      el.className = classes.join(' ');
     }
   },
   created(){
@@ -193,6 +199,7 @@ export default {
     let token = encodeURIComponent(window.localStorage.lh_token);
     axios.get('./?token='+token)
       .then(response => {
+        console.log(response.data);
         if(response.data.response === 'error'){
           localStorage.removeItem('lh_token');
           return;
@@ -208,8 +215,10 @@ export default {
       });
   },
   mounted(){
-    document.getElementsByClassName('all-city')[0].classList.remove('hidden');
-    document.getElementsByClassName('has-login')[0].classList.remove('hidden');
+    this.remove_class(document.getElementsByClassName('all-city')[0],'hidden');
+    this.remove_class(document.getElementsByClassName('has-login')[0],'hidden');
+    // document.getElementsByClassName('all-city')[0].classList.remove('hidden');
+    // document.getElementsByClassName('has-login')[0].classList.remove('hidden');
   }
 }
 </script>

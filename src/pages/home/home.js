@@ -1,3 +1,5 @@
+import "babel-polyfill";
+
 import Vue from "vue/dist/vue.js";
 import $ from "jquery";
 import axios from "axios";

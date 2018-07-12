@@ -2,9 +2,11 @@
   <div class="sidebar fl">
     <div class="the-designer">
       <p class="title tac">本案例设计师</p>
-      <img 
-        :src="designer.thumb ? designer.thumb : designer.photo" :alt="designer.name" class="photo"
-      />
+      <a :href="'./?d_id=' + designer.id">
+        <img 
+          :src="designer.thumb ? designer.thumb : designer.photo" :alt="designer.name" class="photo"
+        />
+      </a>
       <p class="item">
         <span class="item">姓名：</span>
         <span v-text="designer.name"></span>
@@ -24,6 +26,10 @@
       <p class="item">
         <span>从业时间：</span>
         <span v-text="working"></span>
+      </p>
+      <p class="item">
+        <span>从业时间：</span>
+        <span v-text="designer.city.split('_')[1]"></span>
       </p>
       <p class="item">
         <span>擅长风格：</span>

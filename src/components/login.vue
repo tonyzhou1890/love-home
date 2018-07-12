@@ -17,6 +17,8 @@
       <p class="tip"><span v-show="login_pwd_err">密码错误</span></p>
       <button @click="login"
         :disbaled = "login_button_disabled"
+        class="cp"
+        type="button"
       >登录</button>
     </form>
     <div class="success poa tac" v-show="login_success">

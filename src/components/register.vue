@@ -16,9 +16,10 @@
       </label>
       <p class="tip"><span v-show="register_pwd_err">密码错误<br />密码长度必须在6-20字符之间，可以使用数字、大小写字母， 但必须同时包含数字和字母.</span></p>
       <button @click="register"
-      :disbaled = "register_button_disabled"
-      class="cp"
-      :class="{'light-gray':register_ing}"
+        :disbaled = "register_button_disabled"
+        class="cp"
+        :class="{'light-gray':register_ing}"
+        type="button"
       >注册</button>
     </form>
     <div class="success poa tac" v-show="register_success">

@@ -1,3 +1,5 @@
+import "babel-polyfill";
+
 import Vue from "vue/dist/vue.js";
 import css from "../../css/base.less";
 import "../../source/font/iconfont.css";

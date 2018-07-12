@@ -4,8 +4,8 @@
       v-for="(item,index) in designers"
       :key = "index"
     >
-      <a :href="'#' === item.id ? 'javascript:void(0)' : './?d_id=' + item.id" target="_blank"><img :src="item.thumb ? item.thumb : item.photo" :alt="item.name" class="bgc"></a><br />
-      <a :href="'#' === item.id ? 'javascript:void(0)' : './?d_id=' + item.id" target="_blank"><span v-html="item.name" class="ilb"></span></a>
+      <a :href="'#' === item.id ? 'javascript:;' : './?d_id=' + item.id" :target="'#' !== item.id ? '_blank' : ''"><img :src="item.thumb ? item.thumb : item.photo" :alt="item.name" class="bgc"></a><br />
+      <a :href="'#' === item.id ? 'javascript:;' : './?d_id=' + item.id" :target="'#' !== item.id ? '_blank' : ''"><span v-html="item.name" class="ilb"></span></a>
     </div>
   </div>
 </template>

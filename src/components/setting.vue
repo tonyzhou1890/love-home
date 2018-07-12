@@ -48,10 +48,10 @@
         <span class="explain" v-show="judge_mark.name_error">必填</span>
       </li>
       <li class="photo por"><span>照片：</span>
-        <img :src="info.photo"/>
+        <img :src="info.thumb ? info.thumb : info.photo"/>
         <input type="file" class="poa cp" @change="set_pic($event,'photo')">
         <span class="error" v-show="judge_mark.photo_error">!</span>
-        <span class="explain">宽高比73:100,最小宽度560像素，最大宽度760像素，文件大小不得超过200K</span>
+        <span class="explain">宽高比73:100,最小宽度560像素，最大宽度840像素，文件大小不得超过200K</span>
       </li>
       <li><span>毕业院校：</span><input v-model="info.education" @blur="check_education"/>
         <span class="error" v-show="judge_mark.education_error">!</span>
@@ -144,6 +144,7 @@ export default {
         profile: '',
         name: '',
         photo: '',
+        thumb: '',
         education: '',
         working: {
           year: new Date().getFullYear(),
@@ -330,7 +331,8 @@ export default {
         //初始化设计师信息
         let d_info = this.origin_info.designer;
         this.info.name = d_info.name;
-        this.info.photo = d_info.thumb ? d_info.thumb : d_info.photo;
+        this.info.photo = d_info.photo;
+        this.info.thumb = d_info.thumb;
         this.info.counseling = d_info.counseling;
         this.info.design = d_info.design;
         //工作时间
@@ -412,6 +414,7 @@ export default {
         send_obj.designer = {
           name: this.info.name,
           photo: this.info.photo,
+          thumb: this.info.thumb,
           education: this.info.education,
           working_years: this.info.working.year + '_' + this.info.working.month,
           city: this.info.city.area + '_' + this.info.city.city,
@@ -421,6 +424,12 @@ export default {
           introduction: this.info.introduction,
           contact: this.info.contact
         }
+      }
+
+      //ie9阻止上传
+      if(!window.FileReader){
+        alert("您的浏览器版本过低，不支持上传。");
+        return;
       }
 
       console.log(send_obj);
@@ -443,13 +452,29 @@ export default {
     set_pic(e,which){
       e = e || event;
       let t = e.target;
-      console.log(e);
-      console.log(t);
+      // console.log(e);
+      // console.log(t);
       if(!t.value){
         return;
       }
-      let pic = t.files[0];
-      console.log(pic);
+      let pic = {};
+      
+      if(window.FileReader){  //  如果支持FileReader
+        pic = t.files[0];
+      }else{  //低版本IE兼容
+        try{
+          t.select();
+          t.blur();
+          let path = document.selection.createRange().text;
+          let fso = new ActiveXObject("Scripting.FileSystemObject");
+          pic.path = path;
+          pic.size = fso.GetFile(path).size;
+          pic.type = fso.GetFile(path).type;
+        }catch(e){
+          alert(e+"\n"+"如果错误为：Error:Automation 服务器不能创建对象；"+"\n"+"请按以下方法配置浏览器："+"\n"+"请打开【Internet选项-安全-Internet-自定义级别-ActiveX控件和插件-对未标记为可安全执行脚本的ActiveX控件初始化并执行脚本（不安全）-点击启用-确定】");
+        }
+      }
+      // console.log(pic);
 
       // let p = new Promise((resolve,reject) => {
         
@@ -498,6 +523,7 @@ export default {
             }else{
               this.judge_mark.photo_error = false;
               this.info.photo = result.data;
+              this.info.thumb = '';
             }
           }else{
             if('profile' === which){

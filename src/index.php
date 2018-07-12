@@ -456,16 +456,19 @@ function setting_info($setting){
     //检查图片是否赋值并且是base64
     if($d -> photo && substr($d -> photo,0,10) === 'data:image'){
       $res = base64image($d -> photo, './images/profile/', date('YmdHis').rand(100000,999999));
-      if('success' === $res -> result){
+      if('success' === $res -> result){ //如果转换成功
         $d -> photo = $res -> path;
         $d -> thumb = scalePic($res -> path,$maxX=260,$maxY=350,'thumb');
-      }else{
+      }else{  //如果转换失败
         $d -> photo = null;
+        $d -> thumb = null;
       }
     }else if($d -> photo && substr($d -> photo,0,9) === './images/'){
-
-    }else{
+      //如果图片没变
+      
+    }else{  //其他情况
       $d -> photo = null;
+      $d -> thumb = null;
     }
     //是否已经是设计师
     $d_result = common_query($GLOBALS['query']['d_id'].'"'.$u_id.'"','error');

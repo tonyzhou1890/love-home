@@ -44,6 +44,13 @@
         </span>
       </p>
       <p>
+        <span class="item">城市：</span>
+        <span class="content"
+          v-text="designer.city.split('_')[1]"
+        >
+        </span>
+      </p>
+      <p>
         <span class="item">擅长风格：</span>
         <span class="content style ilb"
           v-for="style in designer.style"

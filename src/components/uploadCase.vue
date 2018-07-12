@@ -71,7 +71,9 @@
                 v-show="index_sub_1"
               >
                 <div class="pic-stage por tac">
-                  <img :src="item_sub_1.path" alt="">
+                  <div class="pic">
+                    <img :src="item_sub_1.path" alt="">
+                  </div>
                   <div class="pic-cover poa">
                     <div class="delete cp poa tac"
                       @click="delete_pic(item.detail,index_sub_1,index)"
@@ -253,7 +255,25 @@ export default {
     check_cover(e){
       e = e || event;
       console.log(e.target.files);
-      let pic = e.target.files[0];
+      let pic = {};
+
+      if(window.FileReader){
+        pic = e.target.files[0];
+        console.log(pic);
+      }else{  //低版本ie兼容
+        try{
+          e.target.select();
+          e.target.blur();
+          let path = document.selection.createRange().text;
+          let fso = new ActiveXObject("Scripting.FileSystemObject");
+          pic.path = path;
+          pic.size = fso.GetFile(path).size;
+          pic.type = fso.GetFile(path).type;
+          console.log("269" + pic);
+        }catch(e){
+          alert(e+"\n"+"如果错误为：Error:Automation 服务器不能创建对象；"+"\n"+"请按以下方法配置浏览器："+"\n"+"请打开【Internet选项-安全-Internet-自定义级别-ActiveX控件和插件-对未标记为可安全执行脚本的ActiveX控件初始化并执行脚本（不安全）-点击启用-确定】");
+        }
+      }
       let rule = {
         size: 35 * 1024,
         type: [
@@ -270,7 +290,7 @@ export default {
           }else{
             this.info.cover_error = true;
           }
-          e.target.value = '';
+          // e.target.value = '';
         });
     },
     check_content(index){
@@ -298,10 +318,37 @@ export default {
     add(e,item,index){
       e = e || event;
 
-      let pics = e.target.files;
+      //如果值为空，返回。主要针对 createTextRange 触发的onchange
+      if(!e.target.value){
+        return;
+      }
+
+      let pics = [];
+      if(window.FileReader){
+        pics = e.target.files;
+      }else{  //低版本ie兼容
+        try{
+          e.target.select();
+          e.target.blur();
+          let path = document.selection.createRange().text;
+          let fso = new ActiveXObject("Scripting.FileSystemObject");
+          pics[0] = {};
+          pics[0].path = path;
+          pics[0].size = fso.GetFile(path).size;
+          pics[0].type = fso.GetFile(path).type;
+        }catch(e){
+          alert(e+"\n"+"如果错误为：Error:Automation 服务器不能创建对象；"+"\n"+"请按以下方法配置浏览器："+"\n"+"请打开【Internet选项-安全-Internet-自定义级别-ActiveX控件和插件-对未标记为可安全执行脚本的ActiveX控件初始化并执行脚本（不安全）-点击启用-确定】");
+        }
+      }
+
+
+
       let len = pics.length;
       //这里的mark 为什么设置为 -2，而不是0.原因未知，总之下面的 mark++ 执行次数会比循环次数多 2。所以设置为 -2 .
       let mark = -2;
+      if(!window.FileReader){ //ie9 不存在多执行两次的情况
+        mark = 0;
+      }
       // console.log(e.target);
       // console.log(pics);
       let rule = {
@@ -316,15 +363,22 @@ export default {
         this._CHECK_PIC(rule,pics[key])
           .then( result => {
             if(result.right){
+              console.log("359" + pics);
               item.detail.push({
                 path: result.data,
                 description: ''
               });
             }
             mark++;
-            // console.log('len:'+len+' mark:'+mark);
+            console.log('len:'+len+' mark:'+mark);
             if(len === mark){
               e.target.value = '';
+              if(window.ActiveXObject){
+                e.target.createTextRange().execCommand('delete');
+                e.target.blur();
+              }
+              
+              console.log(e.target.value);
               this.check_content(index);
             }
           });
@@ -352,6 +406,13 @@ export default {
         this.button_text = '信息不全';
         return;
       }else{
+
+        //ie9阻止上传
+        if(!window.FileReader){
+          alert("您的浏览器版本过低，不支持上传。");
+          return;
+        }
+
         this.button_text = '上传中';
       }
       //上传案例
@@ -364,6 +425,9 @@ export default {
         data: JSON.stringify(this.info),
         token: localStorage.lh_token
       };
+
+      
+
       this._POST(post_data,response => {
         console.log(response.data);
         if('success' === response.data.response){
@@ -460,14 +524,24 @@ export default {
             .pic-stage {
               width: 140px;
               height: 140px;
-              background: @darkGray;
-              display: table-cell;
-              vertical-align: middle;
-              img {
-                max-width: 100%;
-                max-height: 100%;
+              
+              .pic {
+                width: 140px;
+                height: 140px;
+                max-width: 140px;
+                max-height: 140px;
+                display: table-cell;
+                background: @darkGray;
                 vertical-align: middle;
+                img {
+                  max-width: 100%;
+                  max-height: 100%;
+                  width: auto;
+                  height: auto;
+                  vertical-align: middle;
+                }
               }
+              
               .pic-cover {
                 width: 100%;
                 height: 100%;
@@ -485,11 +559,11 @@ export default {
                   font-size: 12px;
                   line-height: 16px;
                 }
-                &:hover .delete {
-                  display: block;
-                }
+                
               }
-              
+              &:hover .delete {
+                display: block;
+              }
             }
             .pic-description {
               margin: 20px 0 0 0;
@@ -525,6 +599,7 @@ export default {
       button {
         width: 110px;
         height: 40px;
+        line-height: 40px;
         font-size: 20px;
         background-color: @darkGray;
         color: @white;

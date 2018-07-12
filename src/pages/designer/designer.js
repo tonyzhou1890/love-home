@@ -1,3 +1,5 @@
+import "babel-polyfill";
+
 import Vue from "vue/dist/vue.js";
 import axios from "axios";
 import css from "../../css/base.less";
