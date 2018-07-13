@@ -683,16 +683,32 @@ function home_case(){
   $a_c['cover'] = $GLOBALS['base_info'][1]['value'];
   $a_c['title'] = '案例';
 
-  $modern = common_query("SELECT id,cover,title FROM cases WHERE style = '现代简约' ORDER BY id DESC LIMIT 4",'error');
-  if('no_result' === $modern){
-    $modern = $temp;
+  $case_array = [
+  	[
+  		'现代简约',
+  		'modern'
+  	],
+  	[
+  		'美式',
+  		'amercia'
+  	],
+  	[
+  		'欧式',
+  		'europe'
+  	],
+  	[
+  		'北欧',
+  		'north'
+  	]
+  ];
+
+  for($i = 0,$len = count($case_array);$i < $len; $i++){
+  	$result = common_query("SELECT id,cover,title FROM cases WHERE style = '{$case_array[$i][0]}' ORDER BY id DESC LIMIT 4",'error');
+  	if('no_result' === $result){
+    	$result = $temp;
+  	}
+  	$case -> $case_array[$i][1] = [$case_array[$i][0],patch($result,4,$a_c)];
   }
-
-
-  $case -> modern = ['现代简约',patch($modern,4,$a_c)];
-  $case -> amercia = ['美式',patch($temp,4,$a_c)];
-  $case -> europe = ['欧式',patch($temp,4,$a_c)];
-  $case -> north = ['北欧',patch($temp,4,$a_c)];
   return $case;
 }
 
