@@ -28,7 +28,7 @@
         <span v-text="working"></span>
       </p>
       <p class="item">
-        <span>从业时间：</span>
+        <span>城市：</span>
         <span v-text="designer.city.split('_')[1]"></span>
       </p>
       <p class="item">
