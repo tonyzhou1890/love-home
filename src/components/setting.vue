@@ -318,7 +318,7 @@ export default {
       }
       //性别
       if(u_info.gender){
-        this.info.gender = u_info.gender === '男' ? 'man' : 'woman';
+        this.info.gender = u_info.gender === 'man' ? 'man' : 'woman';
       }
       //头像
       this.info.profile = u_info.profile;
