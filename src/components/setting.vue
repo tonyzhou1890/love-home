@@ -731,7 +731,7 @@ export default {
       
       //tel
       if(this.info.contact.tel.value.length > 0){
-        if(!/^(0\d{2,3}-)|(\d{7,8})|(-\d{3,})$/.test(this.info.contact.tel.value)){
+        if(!/^(0\d{2,3}-)|(\d{7,8})|(-\d{3,4})$/.test(this.info.contact.tel.value)){
           this.judge_mark.contact_error = true;
           return;
         }
