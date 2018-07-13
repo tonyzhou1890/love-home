@@ -66,8 +66,7 @@ export default {
     return {
       logo: './images/website/logo.svg',
       info: '',
-      is_designer: false,
-      once: true
+      is_designer: false
     }
   },
   router,
@@ -97,9 +96,8 @@ export default {
   },
   created(){
     //如果不是设计师却访问上传案例页面，就跳转到设置页面。
-    if(!this.is_designer && '/upload' === this.$route.path && this.once){
+    if(!this.is_designer && '/upload' === this.$route.path){
       console.log(this.$route.path);
-      this.once = false;
       this.$router.replace({path:'/setting'});
     }
     console.log(this.$router);

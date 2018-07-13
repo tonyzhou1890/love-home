@@ -15,9 +15,10 @@
       <li>
         <span>户型：</span>
         <select name="house" id="house" v-model="info.house">
-          <option value="四室两厅"
+          <option 
             v-for="item in house"
             :key="item"
+            :value="item"
             v-html="item"
           >四室两厅</option>
         </select>
@@ -25,9 +26,10 @@
       <li>
         <span>风格：</span>
         <select name="style" id="style" v-model="info.style">
-          <option value="现代简约"
+          <option 
             v-for="item in style"
             :key="item"
+            :value="item"
             v-html="item"
           >现代简约</option>
         </select>
