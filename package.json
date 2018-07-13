@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "b_dev": "cross-env NODE_ENV=development webpack --config webpack.config.js && cp ./src/index.php ./dist/",
-    "b_pro": "cross-env NODE_ENV=production webpack --config webpack.config.js && cp ./src/index.php ./dist/",
+    "b_dev": "cross-env NODE_ENV=development webpack --config webpack.config.js",
+    "b_pro": "cross-env NODE_ENV=production webpack --config webpack.config.js",
     "b_home": "webpack --config webpack.config.home.js && cp ./src/index.php ./dist/",
     "b_about": "webpack --config webpack.config.about.js && cp ./src/index.php ./dist/",
     "b_login": "webpack --config webpack.config.login.js && cp ./src/index.php ./dist/",

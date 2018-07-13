@@ -66,7 +66,8 @@ export default {
     return {
       logo: './images/website/logo.svg',
       info: '',
-      is_designer: false
+      is_designer: false,
+      once: true
     }
   },
   router,
@@ -95,6 +96,15 @@ export default {
     }
   },
   created(){
+    //如果不是设计师却访问上传案例页面，就跳转到设置页面。
+    if(!this.is_designer && '/upload' === this.$route.path && this.once){
+      console.log(this.$route.path);
+      this.once = false;
+      this.$router.replace({path:'/setting'});
+    }
+    console.log(this.$router);
+    window.route = this.$router;
+    
     if(!window.localStorage.lh_token){
       // console.log(this.$router);
       this.clear();
@@ -122,13 +132,15 @@ export default {
             })
         }
       });
+      
   },
-  // mounted(){
-  //   if(!window.localStorage.lh_token){
-  //     this.clear();
-  //     return;
-  //   }
-  // }
+  mounted(){
+    
+    // if(!window.localStorage.lh_token){
+    //   this.clear();
+    //   return;
+    // }
+  }
 };
 
 
